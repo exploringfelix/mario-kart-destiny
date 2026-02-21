@@ -100,7 +100,7 @@
   .label-silver { color:#C0C0C0; background:rgba(192,192,192,0.15); border:1px solid rgba(192,192,192,0.4); }
   .section-wrap { text-align:center; margin-bottom:6px; }
 
-  .cups-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:7px; margin-bottom:14px; }
+  .cups-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-bottom:12px; }
   .cup-tile {
     aspect-ratio:1;
     border-radius:50%;
@@ -151,14 +151,14 @@
   .btn-roll:disabled { background:linear-gradient(180deg,#555,#444); color:#999; box-shadow:0 5px 0 #222; animation:none; cursor:not-allowed; }
 
   /* ── STEP 3: ITEMS ── */
-  .items-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+  .items-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-bottom:14px; }
   .item-tile {
     aspect-ratio:1;
-    border-radius:12px;
+    border-radius:10px;
     background:rgba(255,255,255,0.07);
     border:2px solid rgba(255,255,255,0.15);
     display:flex; flex-direction:column; align-items:center; justify-content:center;
-    font-size:1.6rem;
+    font-size:1.3rem;
     transition:all 0.2s;
     position:relative;
     overflow:hidden;
@@ -528,6 +528,30 @@
     padding-bottom:26vh; justify-content:center;
     position:relative; z-index:10;
   }
+  /* ── NAMES SCREEN ── */
+  .names-input-wrap { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .name-input-row { display:flex; align-items:center; gap:8px; animation:playerRowIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
+  .name-number { font-family:'Bangers',cursive; font-size:1.2rem; color:#FFD700; min-width:26px; text-align:center; text-shadow:2px 2px 0 #8B6000; }
+  .name-input {
+    flex:1; padding:11px 14px;
+    font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700;
+    color:#fff; background:rgba(255,255,255,0.1);
+    border:2px solid rgba(255,215,0,0.4); border-radius:12px;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .name-input::placeholder { color:rgba(255,255,255,0.35); font-weight:700; }
+  .name-input:focus { border-color:#FFD700; box-shadow:0 0 14px rgba(255,215,0,0.35); }
+  .name-input.filled { border-color:#FFD700; background:rgba(255,215,0,0.12); }
+  .btn-add-player {
+    width:100%; padding:14px;
+    font-family:'Bangers',cursive; font-size:1.3rem; letter-spacing:2px;
+    color:#FFD700; background:transparent;
+    border:2px dashed rgba(255,215,0,0.5); border-radius:14px;
+    cursor:pointer; transition:border-color 0.2s, background 0.2s;
+    margin-bottom:4px;
+  }
+  .btn-add-player:active { border-color:#FFD700; background:rgba(255,215,0,0.07); }
+
   .gl-trophy { font-size:5rem; animation:kartBounce 2s ease-in-out infinite; display:block; margin-bottom:16px; filter:drop-shadow(0 10px 30px rgba(255,215,0,0.6)); }
   .gl-title { font-family:'Bangers',cursive; font-size:clamp(2.5rem,10vw,4rem); letter-spacing:4px; color:#FFD700; text-shadow:4px 4px 0 #b8860b, 0 0 40px rgba(255,215,0,0.8); -webkit-text-stroke:1.5px #8B6000; line-height:1; margin-bottom:6px; }
   .gl-subtitle { font-family:'Bangers',cursive; font-size:1.4rem; letter-spacing:3px; color:#fff; text-shadow:2px 2px 0 #333; margin-bottom:24px; }
@@ -595,15 +619,35 @@
   </div>
 </div>
 
+<!-- STEP 0: ENTER PLAYER NAMES -->
+<div id="screen-names" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Who's Playing?</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏎️ Enter Player Names</div>
+    <div class="names-input-wrap" id="namesWrap"></div>
+    <button class="btn-add-player" onclick="addNameField()">＋ Add Another Player</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-reset" onclick="showScreen('screen-home')">🏠 Back</button>
+    <button class="btn-next" id="btnNamesNext" onclick="confirmNames()" disabled>Next Step 🏁</button>
+  </div>
+</div>
+
 <!-- STEP 2: TRACK SELECTION -->
 <div id="screen-step2" class="screen">
   <div class="page-header">
     <div class="logo-small">MARIO KART</div>
     <div class="logo-destiny-sm">✨ DESTINY ✨</div>
-    <div class="step-badge">Step 2 of 4 — Pick Your Cup</div>
+    <div class="step-badge">Step 2 of 5 — Pick Your Cup</div>
   </div>
 
-  <div class="card">
+  <div class="card" style="padding:16px 12px;">
     <div class="card-title">🏆 Which Cup?</div>
 
     <div class="section-wrap"><span class="section-label label-gold">⭐ Original Cups</span></div>
@@ -631,7 +675,7 @@
   <div class="page-header">
     <div class="logo-small">MARIO KART</div>
     <div class="logo-destiny-sm">✨ DESTINY ✨</div>
-    <div class="step-badge">Step 1 of 4 — Players</div>
+    <div class="step-badge">Step 1 of 5 — Players</div>
   </div>
 
   <div class="card">
@@ -837,11 +881,65 @@ function toggleMute() {
   btn.classList.toggle('muted', muted);
 }
 
-// Start music on first user interaction anywhere
+// Try to autoplay immediately on load
+window.addEventListener('load', () => { setTimeout(ensureMusicStarted, 300); });
+// Fallback: start on first user interaction if autoplay was blocked
 document.addEventListener('click', ensureMusicStarted, { once: true });
 document.addEventListener('touchstart', ensureMusicStarted, { once: true });
 
 // ══════════════════════════════════════════════
+
+  /* ── NAMES SCREEN ── */
+  let customNames = [];
+
+  function initNamesScreen() {
+    const wrap = document.getElementById('namesWrap');
+    wrap.innerHTML = '';
+    customNames = [];
+    // Add 4 default fields
+    for (let i = 0; i < 4; i++) addNameField();
+    checkNamesNext();
+  }
+
+  function addNameField() {
+    const wrap = document.getElementById('namesWrap');
+    const idx = wrap.children.length + 1;
+    const row = document.createElement('div');
+    row.className = 'name-input-row';
+    row.style.animationDelay = `${(idx - 1) * 0.05}s`;
+    row.innerHTML = `
+      <div class="name-number">${idx}</div>
+      <input class="name-input" type="text" maxlength="20" placeholder="Player ${idx} name…" oninput="checkNamesNext()" />
+    `;
+    wrap.appendChild(row);
+    // Focus new field if added via button
+    if (idx > 4) setTimeout(() => row.querySelector('input').focus(), 100);
+    checkNamesNext();
+  }
+
+  function checkNamesNext() {
+    const inputs = document.querySelectorAll('#namesWrap .name-input');
+    let filled = 0;
+    inputs.forEach(inp => {
+      const hasValue = inp.value.trim().length > 0;
+      inp.classList.toggle('filled', hasValue);
+      if (hasValue) filled++;
+    });
+    document.getElementById('btnNamesNext').disabled = filled < 2;
+  }
+
+  function confirmNames() {
+    const inputs = document.querySelectorAll('#namesWrap .name-input');
+    customNames = [];
+    inputs.forEach(inp => {
+      const v = inp.value.trim();
+      if (v) customNames.push(v);
+    });
+    // Inject into NAMES array used by step 1
+    NAMES.length = 0;
+    customNames.forEach(n => NAMES.push(n));
+    showScreen('screen-step1');
+  }
 
   const NAMES = ['Lucia','Rafiq','Joshua','Keon','Felix'];
   let playerCount = 0;
@@ -875,7 +973,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     }
   }
 
-  function goToStep1(e){ confettiBurst(e); setTimeout(()=>showScreen('screen-step1'),300); }
+  function goToStep1(e){ confettiBurst(e); setTimeout(()=>{ showScreen('screen-names'); initNamesScreen(); },300); }
   function goToStep2(){ showScreen('screen-step2'); initCupGrids(); }
   function goToStep3(){ showScreen('screen-step3'); initItemsScreen(); }
   function goToStep4(){ showScreen('screen-step4'); initSlots(); }
@@ -1026,7 +1124,6 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
           setTimeout(() => runVehicleRound(roundIdx + 1), 1000);
         } else {
           vehicleSpinning = false;
-          document.getElementById('btnVehicleSpin').disabled = false;
           document.getElementById('btnStep5Next').disabled   = false;
           bigConfetti();
         }
@@ -1222,7 +1319,6 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     }, count * 55 + 400);
 
     itemsRolling = false;
-    document.getElementById('btnItemsRoll').disabled = false;
     document.getElementById('btnStep3Next').disabled = false;
   }
 
@@ -1282,39 +1378,29 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     document.getElementById('resultBox').className = 'result-box';
     document.getElementById('resultBox').innerHTML = '<span class="result-hint">🌀 Spinning...</span>';
 
-    // Clear winner styles
+    // Clear all highlights
     cupTiles.forEach(t => { t.classList.remove('winner','rolling'); });
 
-    const finalIdx = Math.floor(Math.random() * ALL_CUPS.length);
-    const totalSteps = 40 + Math.floor(Math.random() * 20); // 40–60 hops
-    let step = 0;
-    let currentIdx = Math.floor(Math.random() * ALL_CUPS.length);
+    const finalIdx   = Math.floor(Math.random() * ALL_CUPS.length);
+    const flashSteps = 38;
+    let flashStep = 0, lastFlashed = -1;
 
-    function hop() {
-      // Remove old highlight
-      cupTiles.forEach(t => t.classList.remove('rolling'));
-
-      // Pick next tile
-      if (step < totalSteps - 1) {
-        currentIdx = (currentIdx + 1) % ALL_CUPS.length;
+    function flash() {
+      // Remove previous flash
+      if (lastFlashed >= 0) cupTiles[lastFlashed]?.classList.remove('rolling');
+      // Pick a random tile
+      const rnd = Math.floor(Math.random() * cupTiles.length);
+      cupTiles[rnd]?.classList.add('rolling');
+      lastFlashed = rnd;
+      flashStep++;
+      if (flashStep < flashSteps) {
+        setTimeout(flash, 30 + Math.pow(flashStep / flashSteps, 2.2) * 360);
       } else {
-        currentIdx = finalIdx;
-      }
-
-      cupTiles[currentIdx].classList.add('rolling');
-
-      step++;
-      if (step < totalSteps) {
-        // Ease-out: start fast, slow down
-        const progress = step / totalSteps;
-        const delay = 40 + Math.pow(progress, 2.5) * 380;
-        setTimeout(hop, delay);
-      } else {
-        // WINNER!
-        setTimeout(() => revealWinner(currentIdx), 200);
+        cupTiles[lastFlashed]?.classList.remove('rolling');
+        revealWinner(finalIdx);
       }
     }
-    hop();
+    flash();
   }
 
   function revealWinner(idx) {
@@ -1340,7 +1426,6 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
       document.body.appendChild(p); setTimeout(()=>p.remove(),1600);
     }
 
-    document.getElementById('btnRoll').disabled = false;
     document.getElementById('btnStep2Next').disabled = false;
   }
 
@@ -1526,7 +1611,8 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
 
         frame_n++;
         const progress = frame_n / totalFrames;
-        setTimeout(nextFrame, 45 + Math.pow(progress, 2.8) * 420);
+        const speedMultiplier = progress > 0.5 ? 0.5 : 1;
+        setTimeout(nextFrame, (45 + Math.pow(progress, 2.8) * 420) * speedMultiplier);
       }
     }
     nextFrame();
@@ -1561,10 +1647,10 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
   <div class="page-header">
     <div class="logo-small">MARIO KART</div>
     <div class="logo-destiny-sm">✨ DESTINY ✨</div>
-    <div class="step-badge">Step 3 of 4 — Items Setup</div>
+    <div class="step-badge">Step 3 of 5 — Items Setup</div>
   </div>
 
-  <div class="card">
+  <div class="card" style="padding:16px 12px;">
     <div class="card-title">🎁 Which Items?</div>
 
     <div class="items-count-display">
@@ -1593,7 +1679,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
   <div class="page-header">
     <div class="logo-small">MARIO KART</div>
     <div class="logo-destiny-sm">✨ DESTINY ✨</div>
-    <div class="step-badge">Step 4 of 4 — Characters</div>
+    <div class="step-badge">Step 4 of 5 — Characters</div>
   </div>
 
   <div class="card" style="padding:16px 14px;">
@@ -1626,7 +1712,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     <button class="btn-spin-all" id="btnSpinAll" onclick="startSpinning()">🎰 SPIN! 🎰</button>
     <div class="btn-row" style="margin-top:0;">
       <button class="btn-reset" onclick="resetCharacters()">🔄 Respin</button>
-      <button class="btn-next" id="btnStep4Next" onclick="goToFinish()" disabled>Finish! 🏁</button>
+      <button class="btn-next" id="btnStep4Next" onclick="goToFinish()" disabled>Next Step 🏁</button>
     </div>
   </div>
 </div>
@@ -1648,7 +1734,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     <button class="btn-spin-all" id="btnVehicleSpin" onclick="startVehicleSpin()">🎰 SPIN! 🎰</button>
     <div class="btn-row" style="margin-top:0;">
       <button class="btn-reset" onclick="resetVehicles()">🔄 Respin</button>
-      <button class="btn-next" id="btnStep5Next" onclick="goToGoodLuck()" disabled>Next Step 🏁</button>
+      <button class="btn-next" id="btnStep5Next" onclick="goToGoodLuck()" disabled>Finish! 🏁</button>
     </div>
   </div>
 </div>
@@ -1665,7 +1751,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     <div class="gl-subtitle">Good Luck Racers! 🏁</div>
     <div class="gl-players-wrap" id="glPlayersWrap"></div>
     <span class="gl-flag">🏁</span>
-    <button class="gl-start-btn" onclick="goToStep1(event)">🔄 Play Again!</button>
+    <button class="gl-start-btn" onclick="showScreen('screen-names'); initNamesScreen();">🔄 Play Again!</button>
   </div>
 </div>
 
