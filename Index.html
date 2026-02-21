@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mario Kart Destiny Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { min-height:100vh; font-family:'Nunito',sans-serif; background:#0a0a2e; display:flex; flex-direction:column; align-items:center; overflow-x:hidden; }
+
+  /* BG */
+  .bg { position:fixed; inset:0; background:linear-gradient(180deg,#1a6fd4 0%,#3d9be9 30%,#7dc8f7 55%,#c8e9ff 70%,#2d7a1f 70%,#1a5c0f 85%,#0d3a08 100%); z-index:0; }
+  .road { position:fixed; bottom:0; left:0; right:0; height:22vh; background:linear-gradient(180deg,#555 0%,#333 50%,#222 100%); z-index:1; overflow:hidden; }
+  .dashes { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; flex-direction:column; align-items:center; gap:15px; padding-top:10px; }
+  .dash { width:10%; height:8%; background:#fff; border-radius:2px; animation:dashMove 0.6s linear infinite; }
+  .dash:nth-child(2){animation-delay:-0.2s;} .dash:nth-child(3){animation-delay:-0.4s;}
+  @keyframes dashMove { from{transform:translateY(-100%);opacity:0;} 10%{opacity:1;} 90%{opacity:1;} to{transform:translateY(200px);opacity:0;} }
+  .speed-lines { position:fixed; inset:0; z-index:2; pointer-events:none; overflow:hidden; }
+  .speed-line { position:absolute; height:2px; background:linear-gradient(90deg,transparent,rgba(100,200,255,0.5),transparent); border-radius:2px; animation:speedLine 0.8s linear infinite; }
+  @keyframes speedLine { from{transform:scaleX(0) translateX(-100%);opacity:0;} 50%{opacity:1;} to{transform:scaleX(1) translateX(100%);opacity:0;} }
+  .coin { position:fixed; font-size:1.3rem; z-index:3; animation:coinFloat linear infinite; filter:drop-shadow(0 0 6px gold); }
+  @keyframes coinFloat { 0%{transform:translateY(0) rotate(0deg);opacity:0;} 10%{opacity:1;} 90%{opacity:1;} 100%{transform:translateY(-80vh) rotate(720deg);opacity:0;} }
+
+  /* SCREENS */
+  .screen { display:none; flex-direction:column; align-items:center; width:100%; min-height:100vh; padding-bottom:26vh; position:relative; z-index:10; }
+  .screen.active { display:flex; }
+
+  /* ── HOME ── */
+  .home-content { display:flex; flex-direction:column; align-items:center; text-align:center; padding:20px; width:100%; max-width:480px; justify-content:center; min-height:100vh; padding-bottom:24vh; }
+  .game-logo { margin-bottom:10px; animation:logoEntry 1s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; transform:scale(0.3) rotate(-5deg); }
+  @keyframes logoEntry { to{opacity:1;transform:scale(1) rotate(0deg);} }
+  .mario-kart-text { font-family:'Bangers',cursive; font-size:clamp(3rem,12vw,5.5rem); letter-spacing:4px; line-height:1; color:#fff; text-shadow:4px 4px 0 #c0392b,8px 8px 0 #922b21,0 0 40px rgba(255,200,0,0.8); -webkit-text-stroke:2px #8B1A1A; }
+  .destiny-text { font-family:'Bangers',cursive; font-size:clamp(1.8rem,7vw,3rem); letter-spacing:6px; color:#FFD700; text-shadow:3px 3px 0 #b8860b,6px 6px 0 #7a5c00,0 0 30px rgba(255,215,0,0.9); -webkit-text-stroke:1.5px #7a5c00; margin-top:-5px; }
+  .edition-badge { display:inline-block; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; font-size:0.8rem; font-weight:900; letter-spacing:3px; padding:4px 16px; border-radius:20px; border:2px solid #ff6b6b; box-shadow:0 4px 15px rgba(231,76,60,0.5); margin-top:6px; text-transform:uppercase; }
+  .kart-icon { font-size:4rem; margin:15px 0; display:block; animation:kartBounce 2s ease-in-out infinite; filter:drop-shadow(0 10px 20px rgba(0,0,0,0.4)); }
+  @keyframes kartBounce { 0%,100%{transform:translateY(0) rotate(-3deg);} 50%{transform:translateY(-12px) rotate(3deg);} }
+  .btn-wrapper { position:relative; display:inline-flex; align-items:center; justify-content:center; width:100%; margin-top:10px; }
+  .btn-wrapper::before { content:'🎲'; position:absolute; left:5%; font-size:2rem; animation:spinSlow 3s linear infinite; }
+  .btn-wrapper::after  { content:'🎲'; position:absolute; right:5%; font-size:2rem; animation:spinSlow 3s linear infinite reverse; }
+  @keyframes spinSlow { to{transform:rotate(360deg);} }
+  .destiny-btn { padding:22px 36px; font-family:'Bangers',cursive; font-size:clamp(1.6rem,6vw,2.4rem); letter-spacing:3px; color:#1a1a00; background:linear-gradient(180deg,#FFE135 0%,#FFD700 40%,#FFA500 60%,#FF8C00 100%); border:none; border-radius:50px; cursor:pointer; box-shadow:0 6px 0 #8B6000,0 10px 30px rgba(255,165,0,0.5),0 0 60px rgba(255,215,0,0.3); width:90%; max-width:380px; text-align:center; animation:btnPulse 2.5s ease-in-out infinite,btnEntry 1.2s 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards; }
+  .destiny-btn:active { transform:translateY(4px); box-shadow:0 2px 0 #8B6000; }
+  .btn-sub { display:block; font-size:0.8em; margin-top:4px; opacity:0.9; }
+  .hint { margin-top:20px; color:rgba(255,255,255,0.7); font-size:0.85rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; animation:hintFade 2s ease-in-out infinite alternate; }
+  @keyframes hintFade { from{opacity:0.4;} to{opacity:0.9;} }
+  @keyframes btnEntry { from{opacity:0;transform:translateY(40px) scale(0.8);} to{opacity:1;transform:translateY(0) scale(1);} }
+
+  /* ── STEP HEADER ── */
+  .page-header { text-align:center; padding:28px 20px 8px; animation:slideDown 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes slideDown { from{opacity:0;transform:translateY(-30px);} to{opacity:1;transform:translateY(0);} }
+  .logo-small { font-family:'Bangers',cursive; font-size:clamp(1.8rem,7vw,2.8rem); letter-spacing:3px; color:#fff; text-shadow:3px 3px 0 #c0392b,6px 6px 0 #922b21,0 0 30px rgba(255,200,0,0.7); -webkit-text-stroke:1.5px #8B1A1A; line-height:1; }
+  .logo-destiny-sm { font-family:'Bangers',cursive; font-size:clamp(1rem,4vw,1.6rem); letter-spacing:5px; color:#FFD700; text-shadow:2px 2px 0 #b8860b,0 0 20px rgba(255,215,0,0.8); }
+  .step-badge { display:inline-block; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; font-size:0.75rem; font-weight:900; letter-spacing:2px; padding:3px 14px; border-radius:20px; border:2px solid #ff6b6b; box-shadow:0 4px 15px rgba(231,76,60,0.5); margin-top:5px; text-transform:uppercase; }
+
+  /* ── CARD ── */
+  .card { background:rgba(10,10,46,0.85); border:3px solid #FFD700; border-radius:24px; padding:24px 20px; width:92%; max-width:420px; margin-top:16px; box-shadow:0 0 40px rgba(255,215,0,0.25),inset 0 1px 0 rgba(255,255,255,0.1); animation:cardEntry 0.7s 0.2s cubic-bezier(0.34,1.56,0.64,1) backwards; }
+  @keyframes cardEntry { from{opacity:0;transform:scale(0.85) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+  .card-title { font-family:'Bangers',cursive; font-size:1.6rem; letter-spacing:2px; color:#FFD700; text-align:center; margin-bottom:18px; text-shadow:0 0 15px rgba(255,215,0,0.5); }
+
+  /* COUNT SELECTOR */
+  .count-label { color:rgba(255,255,255,0.8); font-size:0.9rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; text-align:center; margin-bottom:10px; }
+  .count-selector { display:flex; justify-content:center; gap:10px; margin-bottom:22px; }
+  .count-btn { width:58px; height:58px; font-family:'Bangers',cursive; font-size:1.8rem; color:#1a1a00; background:linear-gradient(180deg,#FFE135 0%,#FFD700 40%,#FFA500 60%,#FF8C00 100%); border:none; border-radius:14px; cursor:pointer; box-shadow:0 5px 0 #8B6000,0 8px 20px rgba(255,165,0,0.3); transition:transform 0.1s,box-shadow 0.1s; }
+  .count-btn:active { transform:translateY(3px); box-shadow:0 2px 0 #8B6000; }
+  .count-btn.selected { background:linear-gradient(180deg,#FF6B35 0%,#FF4500 40%,#CC3300 100%); color:#fff; box-shadow:0 5px 0 #7a1a00,0 8px 25px rgba(255,69,0,0.5); }
+
+  /* PLAYER ROWS */
+  .players-container { display:flex; flex-direction:column; gap:12px; }
+  .player-row { display:flex; align-items:center; gap:12px; animation:playerRowIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
+  @keyframes playerRowIn { from{opacity:0;transform:translateX(-30px);} to{opacity:1;transform:translateX(0);} }
+  .player-label { font-family:'Bangers',cursive; font-size:1.2rem; letter-spacing:1px; color:#fff; white-space:nowrap; min-width:82px; text-shadow:2px 2px 0 #c0392b; }
+  .player-label span { color:#FFD700; }
+  .player-select { flex:1; padding:10px 36px 10px 14px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; color:#fff; background:rgba(255,255,255,0.12); border:2px solid rgba(255,215,0,0.5); border-radius:12px; appearance:none; -webkit-appearance:none; cursor:pointer; transition:border-color 0.2s,box-shadow 0.2s; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M6 8L0 0h12z' fill='%23FFD700'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; }
+  .player-select:focus { outline:none; border-color:#FFD700; box-shadow:0 0 15px rgba(255,215,0,0.4); }
+  .player-select option { background:#1a1a46; color:#fff; }
+  .player-select.chosen { border-color:#FFD700; background-color:rgba(255,215,0,0.15); }
+
+  /* BOTTOM BUTTONS */
+  .btn-row { display:flex; gap:12px; margin-top:20px; width:92%; max-width:420px; animation:cardEntry 0.7s 0.4s cubic-bezier(0.34,1.56,0.64,1) backwards; }
+  .btn-reset { flex:1; padding:16px 10px; font-family:'Bangers',cursive; font-size:1.3rem; letter-spacing:2px; color:#fff; background:linear-gradient(180deg,#888 0%,#555 100%); border:none; border-radius:50px; cursor:pointer; box-shadow:0 5px 0 #222,0 8px 20px rgba(0,0,0,0.3); transition:transform 0.1s,box-shadow 0.1s; }
+  .btn-reset:active { transform:translateY(3px); box-shadow:0 2px 0 #222; }
+  .btn-next { flex:2; padding:16px 10px; font-family:'Bangers',cursive; font-size:1.4rem; letter-spacing:2px; color:#1a1a00; background:linear-gradient(180deg,#FFE135 0%,#FFD700 40%,#FFA500 60%,#FF8C00 100%); border:none; border-radius:50px; cursor:pointer; box-shadow:0 5px 0 #8B6000,0 8px 25px rgba(255,165,0,0.4); transition:transform 0.1s,box-shadow 0.1s; animation:btnPulse 2.5s ease-in-out infinite; }
+  .btn-next:active { transform:translateY(3px); box-shadow:0 2px 0 #8B6000; }
+  .btn-next:disabled { background:linear-gradient(180deg,#555,#444); color:#999; box-shadow:0 5px 0 #222; animation:none; cursor:not-allowed; }
+  @keyframes btnPulse { 0%,100%{box-shadow:0 5px 0 #8B6000,0 8px 25px rgba(255,165,0,0.4),0 0 40px rgba(255,215,0,0.2);} 50%{box-shadow:0 5px 0 #8B6000,0 8px 35px rgba(255,165,0,0.7),0 0 70px rgba(255,215,0,0.5);} }
+
+  /* CONFETTI */
+  .confetti-piece { position:fixed; width:10px; height:10px; border-radius:2px; pointer-events:none; z-index:999; animation:confettiFall 1s ease-out forwards; }
+  @keyframes confettiFall { from{opacity:1;} to{transform:translate(var(--tx),var(--ty)) rotate(var(--rot));opacity:0;} }
+
+  /* MUTE BUTTON */
+  #muteBtn { position:fixed; top:12px; right:12px; z-index:9999; width:44px; height:44px; border-radius:50%; background:rgba(10,10,46,0.85); border:2px solid #FFD700; color:#FFD700; font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px rgba(255,215,0,0.4); transition:transform 0.15s,box-shadow 0.15s; }
+  #muteBtn:active { transform:scale(0.9); }
+  #muteBtn.muted { border-color:#888; color:#888; box-shadow:none; }
+
+  /* ── STEP 2: TRACK SELECTION ── */
+  .section-label { font-family:'Bangers',cursive; font-size:0.85rem; letter-spacing:3px; text-transform:uppercase; text-align:center; margin-bottom:8px; padding:3px 12px; border-radius:10px; display:inline-block; }
+  .label-gold   { color:#FFD700; background:rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.4); }
+  .label-silver { color:#C0C0C0; background:rgba(192,192,192,0.15); border:1px solid rgba(192,192,192,0.4); }
+  .section-wrap { text-align:center; margin-bottom:6px; }
+
+  .cups-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-bottom:12px; }
+  .cup-tile {
+    aspect-ratio:1;
+    border-radius:50%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:default;
+    font-size:1.5rem;
+    transition:transform 0.15s, box-shadow 0.15s;
+    position:relative;
+    border:3px solid transparent;
+  }
+  .cup-tile.gold-cup   { background:radial-gradient(circle at 35% 35%,#3a3060,#1a1040); border-color:#b8860b; box-shadow:0 3px 8px rgba(0,0,0,0.4); }
+  .cup-tile.silver-cup { background:radial-gradient(circle at 35% 35%,#2a2a4a,#111130); border-color:#666; box-shadow:0 3px 8px rgba(0,0,0,0.4); }
+
+  .cup-tile.rolling  { transform:scale(1.25); box-shadow:0 0 20px rgba(255,255,100,0.9), 0 0 40px rgba(255,200,0,0.5); border-color:#FFD700; z-index:2; }
+  .cup-tile.winner {
+    transform:scale(1.35);
+    border-color:#FFD700;
+    box-shadow:0 0 30px rgba(255,215,0,1), 0 0 60px rgba(255,165,0,0.7), 0 0 100px rgba(255,100,0,0.4);
+    animation:winnerPulse 0.8s ease-in-out infinite;
+    z-index:3;
+  }
+  @keyframes winnerPulse {
+    0%,100% { box-shadow:0 0 30px rgba(255,215,0,1),0 0 60px rgba(255,165,0,0.7); transform:scale(1.35); }
+    50%      { box-shadow:0 0 50px rgba(255,215,0,1),0 0 100px rgba(255,165,0,0.9); transform:scale(1.42); }
+  }
+
+  .cup-name { font-size:0.42rem; font-weight:900; color:rgba(255,255,255,0.7); letter-spacing:0.5px; margin-top:2px; text-transform:uppercase; text-align:center; line-height:1.1; }
+
+  .result-box {
+    text-align:center;
+    padding:16px;
+    background:rgba(255,215,0,0.1);
+    border:2px solid rgba(255,215,0,0.5);
+    border-radius:16px;
+    margin-top:6px;
+    min-height:70px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transition:all 0.3s;
+  }
+  .result-box.revealed { background:rgba(255,215,0,0.2); border-color:#FFD700; box-shadow:0 0 25px rgba(255,215,0,0.4); }
+  .result-cup-icon { font-size:2.5rem; display:block; animation:resultPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes resultPop { from{transform:scale(0) rotate(-20deg);opacity:0;} to{transform:scale(1) rotate(0);opacity:1;} }
+  .result-cup-name { font-family:'Bangers',cursive; font-size:1.6rem; letter-spacing:2px; color:#FFD700; text-shadow:0 0 20px rgba(255,215,0,0.8); margin-top:2px; }
+  .result-hint { color:rgba(255,255,255,0.6); font-size:0.8rem; font-weight:700; letter-spacing:1px; }
+
+  .btn-roll { width:100%; padding:18px; font-family:'Bangers',cursive; font-size:1.8rem; letter-spacing:3px; color:#1a1a00; background:linear-gradient(180deg,#FFE135 0%,#FFD700 40%,#FFA500 60%,#FF8C00 100%); border:none; border-radius:50px; cursor:pointer; box-shadow:0 6px 0 #8B6000,0 10px 25px rgba(255,165,0,0.5); transition:transform 0.1s,box-shadow 0.1s; animation:btnPulse 2s ease-in-out infinite; margin-bottom:14px; }
+  .btn-roll:active { transform:translateY(4px); box-shadow:0 2px 0 #8B6000; }
+  .btn-roll:disabled { background:linear-gradient(180deg,#555,#444); color:#999; box-shadow:0 5px 0 #222; animation:none; cursor:not-allowed; }
+
+  /* ── STEP 3: ITEMS ── */
+  .items-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; margin-bottom:14px; }
+  .item-tile {
+    aspect-ratio:1;
+    border-radius:10px;
+    background:rgba(255,255,255,0.07);
+    border:2px solid rgba(255,255,255,0.15);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:1.3rem;
+    transition:all 0.2s;
+    position:relative;
+    overflow:hidden;
+  }
+  .item-tile .item-name { font-size:0.38rem; font-weight:900; color:rgba(255,255,255,0.5); text-align:center; margin-top:2px; text-transform:uppercase; letter-spacing:0.3px; line-height:1.2; }
+  .item-tile.active {
+    background:rgba(255,215,0,0.2);
+    border-color:#FFD700;
+    box-shadow:0 0 18px rgba(255,215,0,0.6), inset 0 0 10px rgba(255,215,0,0.1);
+    transform:scale(1.06);
+  }
+  .item-tile.active .item-name { color:#FFD700; }
+  .item-tile.flashing {
+    background:rgba(255,255,100,0.35);
+    border-color:#fff;
+    box-shadow:0 0 25px rgba(255,255,200,0.9);
+    transform:scale(1.1);
+  }
+
+  .items-count-display {
+    text-align:center;
+    margin-bottom:14px;
+  }
+  .count-number {
+    font-family:'Bangers',cursive;
+    font-size:3.5rem;
+    color:#FFD700;
+    text-shadow:0 0 30px rgba(255,215,0,0.8), 3px 3px 0 #b8860b;
+    line-height:1;
+    animation:countPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes countPop { from{transform:scale(0.5);opacity:0;} to{transform:scale(1);opacity:1;} }
+  .count-sublabel { color:rgba(255,255,255,0.6); font-size:0.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+
+  .items-result-bar {
+    background:rgba(255,215,0,0.1);
+    border:2px solid rgba(255,215,0,0.4);
+    border-radius:12px;
+    padding:10px 14px;
+    margin-bottom:12px;
+    text-align:center;
+    min-height:44px;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px;
+    transition:all 0.3s;
+  }
+  .items-result-bar.revealed { border-color:#FFD700; box-shadow:0 0 20px rgba(255,215,0,0.3); background:rgba(255,215,0,0.15); }
+  .result-item-emoji { font-size:1.6rem; animation:resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .no-items-text { font-family:'Bangers',cursive; font-size:1.2rem; color:#ff6b6b; letter-spacing:2px; }
+
+  /* ── STEP 4: HORIZONTAL SLOT MACHINE ── */
+
+  /* Outer machine body */
+  .slot-machine {
+    width:100%;
+    background:linear-gradient(180deg,#2a0a00 0%,#1a0500 100%);
+    border-radius:20px;
+    border:4px solid #FFD700;
+    box-shadow:0 0 40px rgba(255,215,0,0.4), inset 0 2px 0 rgba(255,255,255,0.15), 0 8px 0 #8B6000;
+    overflow:hidden;
+    position:relative;
+  }
+  /* Decorative top bar */
+  .slot-machine-top {
+    background:linear-gradient(90deg,#c0392b,#e74c3c,#c0392b);
+    padding:8px 16px;
+    text-align:center;
+    border-bottom:3px solid #FFD700;
+    font-family:'Bangers',cursive;
+    font-size:1rem;
+    letter-spacing:4px;
+    color:#FFD700;
+    text-shadow:0 0 10px rgba(255,215,0,0.8);
+  }
+
+  /* Reels row */
+  .slot-reels-row {
+    display:flex;
+    flex-direction:row;
+    align-items:stretch;
+    padding:12px 10px;
+    gap:8px;
+    justify-content:center;
+  }
+
+  /* Each individual reel column */
+  .slot-reel-col {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    min-width:0;
+  }
+
+  .slot-player-label {
+    font-family:'Bangers',cursive;
+    font-size:0.85rem;
+    letter-spacing:1px;
+    color:#FFD700;
+    text-align:center;
+    margin-bottom:6px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    width:100%;
+    text-shadow:1px 1px 0 #8B6000;
+  }
+
+  /* The reel window frame */
+  .slot-reel-frame {
+    width:100%;
+    background:linear-gradient(180deg,#0a0020,#05001a);
+    border-radius:8px;
+    border:3px solid #8B6000;
+    box-shadow:inset 0 0 20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,215,0,0.2);
+    overflow:hidden;
+    position:relative;
+    height:160px;
+  }
+  /* Highlight bar in the center of reel */
+  .slot-reel-frame::before {
+    content:'';
+    position:absolute;
+    top:50%; left:0; right:0;
+    height:44px;
+    transform:translateY(-50%);
+    background:rgba(255,215,0,0.08);
+    border-top:1px solid rgba(255,215,0,0.4);
+    border-bottom:1px solid rgba(255,215,0,0.4);
+    z-index:2;
+    pointer-events:none;
+  }
+  /* Top/bottom fade */
+  .slot-reel-frame::after {
+    content:'';
+    position:absolute;
+    inset:0;
+    background:linear-gradient(180deg,
+      rgba(5,0,20,0.85) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(5,0,20,0.85) 100%
+    );
+    z-index:3;
+    pointer-events:none;
+  }
+
+  /* The scrolling strip */
+  .slot-strip {
+    position:absolute;
+    top:0; left:0; right:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .slot-strip-item {
+    height:44px;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Bangers',cursive;
+    font-size:0.82rem;
+    letter-spacing:0.5px;
+    color:rgba(255,255,255,0.6);
+    text-align:center;
+    padding:0 4px;
+    line-height:1.1;
+    flex-shrink:0;
+    word-break:break-word;
+  }
+  .slot-strip-item.center-item {
+    color:#FFD700;
+    font-size:0.9rem;
+    text-shadow:0 0 12px rgba(255,215,0,0.9);
+  }
+  .slot-strip-item.winner-item {
+    color:#44FF88;
+    font-size:0.95rem;
+    text-shadow:0 0 16px rgba(68,255,136,0.9);
+    font-weight:900;
+  }
+
+  /* Status dot below reel */
+  .slot-reel-status {
+    margin-top:6px;
+    font-size:0.65rem;
+    font-weight:900;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.3);
+    text-align:center;
+  }
+  .slot-reel-status.spinning { color:#FFD700; animation:hintFade 0.4s ease-in-out infinite alternate; }
+  .slot-reel-status.done     { color:#44FF88; }
+
+  /* Reel column state styling */
+  .slot-reel-frame.is-spinning { border-color:#FFD700; box-shadow:inset 0 0 20px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.6); }
+  .slot-reel-frame.is-done     { border-color:#44FF88; box-shadow:inset 0 0 20px rgba(0,0,0,0.8), 0 0 20px rgba(68,255,136,0.4); }
+
+  /* Dividers between reels */
+  .reel-divider {
+    width:3px;
+    background:linear-gradient(180deg,transparent,#8B6000,#FFD700,#8B6000,transparent);
+    border-radius:2px;
+    align-self:stretch;
+    flex-shrink:0;
+  }
+
+  /* Result names below machine */
+  .slot-results-strip {
+    display:flex;
+    flex-direction:row;
+    gap:8px;
+    padding:10px 10px 14px;
+    background:rgba(0,0,0,0.3);
+    border-top:2px solid rgba(255,215,0,0.3);
+  }
+  .slot-result-cell {
+    flex:1;
+    text-align:center;
+    min-width:0;
+    opacity:0;
+    transition:opacity 0.4s;
+  }
+  .slot-result-cell.visible { opacity:1; }
+  .slot-result-cell-emoji { font-size:1.4rem; display:block; }
+  .slot-result-cell-name {
+    font-family:'Bangers',cursive;
+    font-size:0.72rem;
+    letter-spacing:0.5px;
+    color:#44FF88;
+    text-shadow:0 0 10px rgba(68,255,136,0.7);
+    word-break:break-word;
+    line-height:1.2;
+    margin-top:2px;
+  }
+
+  /* Coin lights on side of machine */
+  .slot-machine-lights {
+    position:absolute;
+    top:50px; bottom:10px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-evenly;
+    pointer-events:none;
+  }
+  .slot-machine-lights.left  { left:6px; }
+  .slot-machine-lights.right { right:6px; }
+  .slot-light {
+    width:8px; height:8px;
+    border-radius:50%;
+    background:#FFD700;
+    box-shadow:0 0 8px #FFD700;
+    animation:lightBlink 1.2s ease-in-out infinite;
+  }
+  .slot-light:nth-child(2) { animation-delay:0.3s; }
+  .slot-light:nth-child(3) { animation-delay:0.6s; }
+  .slot-light:nth-child(4) { animation-delay:0.9s; }
+  @keyframes lightBlink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+  /* Big spin button */
+  .btn-spin-all { width:100%; padding:20px; font-family:'Bangers',cursive; font-size:2rem; letter-spacing:3px; color:#1a1a00; background:linear-gradient(180deg,#FFE135 0%,#FFD700 40%,#FFA500 60%,#FF8C00 100%); border:none; border-radius:50px; cursor:pointer; box-shadow:0 6px 0 #8B6000,0 10px 25px rgba(255,165,0,0.5); transition:transform 0.1s,box-shadow 0.1s; animation:btnPulse 2s ease-in-out infinite; margin-bottom:14px; }
+  .btn-spin-all:active { transform:translateY(4px); box-shadow:0 2px 0 #8B6000; }
+  .btn-spin-all:disabled { background:linear-gradient(180deg,#555,#444); color:#999; box-shadow:0 5px 0 #222; animation:none; cursor:not-allowed; }
+
+  /* ── STEP 5: VEHICLE SLOT MACHINES ── */
+  .vehicle-machines-wrap { display:flex; flex-direction:column; gap:12px; width:100%; }
+
+  .player-machine {
+    background:linear-gradient(180deg,#1a0800,#0d0400);
+    border:3px solid #FFD700;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 0 20px rgba(255,215,0,0.2), 0 5px 0 #8B6000;
+  }
+  .player-machine-header {
+    background:linear-gradient(90deg,#8B1A1A,#c0392b,#8B1A1A);
+    padding:6px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:2px solid #FFD700;
+  }
+  .player-machine-name { font-family:'Bangers',cursive; font-size:1rem; letter-spacing:2px; color:#FFD700; text-shadow:0 0 10px rgba(255,215,0,0.6); }
+  .player-machine-status { font-size:0.65rem; font-weight:900; letter-spacing:1px; text-transform:uppercase; color:rgba(255,255,255,0.5); }
+  .player-machine-status.spinning { color:#FFD700; animation:hintFade 0.5s ease-in-out infinite alternate; }
+  .player-machine-status.done     { color:#44FF88; }
+
+  /* Three reels row */
+  .vehicle-reels-row { display:flex; flex-direction:row; gap:0; padding:8px 8px 0; }
+
+  .vehicle-reel-col { flex:1; display:flex; flex-direction:column; align-items:center; min-width:0; }
+  .vehicle-reel-label {
+    font-size:0.6rem; font-weight:900; letter-spacing:2px; text-transform:uppercase;
+    color:rgba(255,255,255,0.5); text-align:center; margin-bottom:4px;
+  }
+  .vehicle-reel-frame {
+    width:100%; height:110px;
+    background:#020010;
+    border-radius:8px;
+    border:2px solid #444;
+    overflow:hidden; position:relative;
+    transition:border-color 0.3s, box-shadow 0.3s;
+  }
+  .vehicle-reel-frame::before {
+    content:''; position:absolute; top:50%; left:0; right:0;
+    height:36px; transform:translateY(-50%);
+    background:rgba(255,215,0,0.07);
+    border-top:1px solid rgba(255,215,0,0.35);
+    border-bottom:1px solid rgba(255,215,0,0.35);
+    z-index:2; pointer-events:none;
+  }
+  .vehicle-reel-frame::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg,rgba(2,0,16,0.9) 0%,transparent 30%,transparent 70%,rgba(2,0,16,0.9) 100%);
+    z-index:3; pointer-events:none;
+  }
+  .vehicle-reel-frame.v-spinning { border-color:#FFD700; box-shadow:0 0 15px rgba(255,215,0,0.5); }
+  .vehicle-reel-frame.v-done     { border-color:#44FF88; box-shadow:0 0 12px rgba(68,255,136,0.4); }
+
+  .vehicle-strip { position:absolute; top:0; left:0; right:0; display:flex; flex-direction:column; align-items:center; }
+  .vehicle-strip-item {
+    height:36px; width:100%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Bangers',cursive;
+    font-size:0.7rem; letter-spacing:0.3px;
+    color:rgba(255,255,255,0.5);
+    text-align:center; padding:0 3px; line-height:1.1;
+    flex-shrink:0; word-break:break-word;
+  }
+  .vehicle-strip-item.vcenter { color:#FFD700; font-size:0.75rem; text-shadow:0 0 10px rgba(255,215,0,0.9); }
+  .vehicle-strip-item.vwinner { color:#44FF88; font-size:0.8rem; text-shadow:0 0 14px rgba(68,255,136,0.9); font-weight:900; }
+
+  /* Reel divider */
+  .vreel-div { width:2px; background:linear-gradient(180deg,transparent,#8B6000,transparent); margin:0 2px; align-self:stretch; flex-shrink:0; margin-bottom:0; margin-top:18px; }
+
+  /* Results row at bottom of each machine */
+  .vehicle-results-row {
+    display:flex; flex-direction:row; gap:0;
+    padding:6px 8px 8px; border-top:1px solid rgba(255,215,0,0.2);
+    margin-top:8px;
+  }
+  .vehicle-result-cell {
+    flex:1; text-align:center; min-width:0;
+    opacity:0; transition:opacity 0.4s;
+    font-family:'Bangers',cursive;
+    font-size:0.65rem; letter-spacing:0.5px;
+    color:#44FF88; line-height:1.3;
+    word-break:break-word; padding:0 2px;
+  }
+  .vehicle-result-cell.vvisible { opacity:1; }
+  .vehicle-result-cell .vr-label { display:block; font-size:0.55rem; color:rgba(255,255,255,0.4); letter-spacing:1px; text-transform:uppercase; margin-bottom:1px; }
+
+  /* Roll round indicator */
+  .round-indicator {
+    text-align:center; margin-bottom:10px;
+    font-family:'Bangers',cursive;
+    font-size:1.4rem; letter-spacing:3px;
+    color:#FFD700; text-shadow:0 0 15px rgba(255,215,0,0.6);
+  }
+  .round-indicator span { color:#fff; }
+
+  /* ── GOOD LUCK SCREEN ── */
+  .goodluck-content {
+    display:flex; flex-direction:column; align-items:center;
+    text-align:center; padding:20px; width:100%;
+    max-width:480px; min-height:100vh;
+    padding-bottom:26vh; justify-content:center;
+    position:relative; z-index:10;
+  }
+  .count-btn.unavailable { background:linear-gradient(180deg,#444 0%,#333 100%); color:#666; box-shadow:0 5px 0 #111; cursor:not-allowed; }
+  .count-btn.unavailable:active { transform:none; box-shadow:0 5px 0 #111; }
+
+  .btn-new-game {
+    display:block; width:92%; max-width:420px; margin:32px auto 0;
+    font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:2px;
+    color:rgba(255,255,255,0.6); background:rgba(10,10,46,0.6);
+    border:2px solid rgba(255,255,255,0.2); border-radius:50px;
+    padding:12px 20px; cursor:pointer; text-align:center;
+    transition:border-color 0.2s, color 0.2s;
+    animation:cardEntry 0.7s 0.5s cubic-bezier(0.34,1.56,0.64,1) backwards;
+  }
+  .btn-new-game:active { color:#FFD700; border-color:#FFD700; }
+
+  /* ── NAMES SCREEN ── */
+  .names-input-wrap { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .name-input-row { display:flex; align-items:center; gap:8px; animation:playerRowIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
+  .name-number { font-family:'Bangers',cursive; font-size:1.2rem; color:#FFD700; min-width:26px; text-align:center; text-shadow:2px 2px 0 #8B6000; }
+  .name-input {
+    flex:1; padding:11px 14px;
+    font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700;
+    color:#fff; background:rgba(255,255,255,0.1);
+    border:2px solid rgba(255,215,0,0.4); border-radius:12px;
+    outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .name-input::placeholder { color:rgba(255,255,255,0.35); font-weight:700; }
+  .name-input:focus { border-color:#FFD700; box-shadow:0 0 14px rgba(255,215,0,0.35); }
+  .name-input.filled { border-color:#FFD700; background:rgba(255,215,0,0.12); }
+  .btn-add-player {
+    width:100%; padding:14px;
+    font-family:'Bangers',cursive; font-size:1.3rem; letter-spacing:2px;
+    color:#FFD700; background:transparent;
+    border:2px dashed rgba(255,215,0,0.5); border-radius:14px;
+    cursor:pointer; transition:border-color 0.2s, background 0.2s;
+    margin-bottom:4px;
+  }
+  .btn-add-player:active { border-color:#FFD700; background:rgba(255,215,0,0.07); }
+
+  .gl-trophy { font-size:5rem; animation:kartBounce 2s ease-in-out infinite; display:block; margin-bottom:16px; filter:drop-shadow(0 10px 30px rgba(255,215,0,0.6)); }
+  .gl-title { font-family:'Bangers',cursive; font-size:clamp(2.5rem,10vw,4rem); letter-spacing:4px; color:#FFD700; text-shadow:4px 4px 0 #b8860b, 0 0 40px rgba(255,215,0,0.8); -webkit-text-stroke:1.5px #8B6000; line-height:1; margin-bottom:6px; }
+  .gl-subtitle { font-family:'Bangers',cursive; font-size:1.4rem; letter-spacing:3px; color:#fff; text-shadow:2px 2px 0 #333; margin-bottom:24px; }
+
+  .gl-players-wrap { display:flex; flex-direction:column; gap:10px; width:100%; max-width:380px; margin-bottom:24px; }
+  .gl-player-card {
+    background:rgba(10,10,46,0.85);
+    border:2px solid rgba(255,215,0,0.4);
+    border-radius:14px;
+    padding:10px 16px;
+    text-align:left;
+    animation:cardEntry 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .gl-player-card.rafiq-card { border-color:#FF4444; box-shadow:0 0 20px rgba(255,68,68,0.4); }
+  .gl-player-name { font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:2px; color:#FFD700; }
+  .gl-player-char { font-size:0.85rem; color:rgba(255,255,255,0.7); font-weight:700; margin-top:1px; }
+  .gl-rafiq-msg {
+    margin-top:6px;
+    font-family:'Bangers',cursive;
+    font-size:1rem;
+    letter-spacing:1px;
+    color:#FF4444;
+    text-shadow:0 0 15px rgba(255,68,68,0.7);
+    border-top:1px solid rgba(255,68,68,0.3);
+    padding-top:6px;
+  }
+
+  .gl-flag { font-size:3rem; animation:spinSlow 4s linear infinite; display:block; margin:10px auto; }
+  .gl-start-btn {
+    padding:18px 40px;
+    font-family:'Bangers',cursive;
+    font-size:1.8rem; letter-spacing:3px;
+    color:#1a1a00;
+    background:linear-gradient(180deg,#FFE135 0%,#FFD700 40%,#FFA500 60%,#FF8C00 100%);
+    border:none; border-radius:50px; cursor:pointer;
+    box-shadow:0 6px 0 #8B6000, 0 10px 25px rgba(255,165,0,0.5);
+    animation:btnPulse 2s ease-in-out infinite;
+    margin-top:10px;
+  }
+</style>
+
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="road"><div class="dashes"><div class="dash"></div><div class="dash"></div><div class="dash"></div></div></div>
+<div class="speed-lines" id="speedLines"></div>
+
+<!-- HOME SCREEN -->
+<div id="screen-home" class="screen active">
+  <div class="home-content">
+    <div class="game-logo">
+      <div class="mario-kart-text">MARIO KART</div>
+      <div class="destiny-text">✨ DESTINY ✨</div>
+      <div class="edition-badge">Special Edition</div>
+    </div>
+    <span class="kart-icon">🏎️</span>
+    <div class="btn-wrapper">
+      <button class="destiny-btn" onclick="goToStep1(event)">
+        Create Your Own Destiny
+        <span class="btn-sub">🏁 PRESS START 🏁</span>
+      </button>
+    </div>
+    <p class="hint">Tap to randomize your race destiny</p>
+  </div>
+</div>
+
+<!-- STEP 0: ENTER PLAYER NAMES -->
+<div id="screen-names" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Who's Playing?</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏎️ Enter Player Names</div>
+    <div class="names-input-wrap" id="namesWrap"></div>
+    <button class="btn-add-player" onclick="addNameField()">＋ Add Another Player</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-reset" onclick="showScreen('screen-home')">🏠 Back</button>
+    <button class="btn-next" id="btnNamesNext" onclick="confirmNames()" disabled>Next Step 🏁</button>
+  </div>
+</div>
+
+<!-- STEP 2: TRACK SELECTION -->
+<div id="screen-step2" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Step 2 of 5 — Pick Your Cup</div>
+  </div>
+
+  <div class="card" style="padding:16px 12px;">
+    <div class="card-title">🏆 Which Cup?</div>
+
+    <div class="section-wrap"><span class="section-label label-gold">⭐ Original Cups</span></div>
+    <div class="cups-grid" id="goldGrid"></div>
+
+    <div class="section-wrap"><span class="section-label label-silver">✦ Booster Cups</span></div>
+    <div class="cups-grid" id="silverGrid"></div>
+
+    <div class="result-box" id="resultBox">
+      <span class="result-hint">🎲 Press ROLL to spin the wheel!</span>
+    </div>
+  </div>
+
+  <div style="width:92%;max-width:420px;margin-top:16px;animation:cardEntry 0.7s 0.3s cubic-bezier(0.34,1.56,0.64,1) backwards;">
+    <button class="btn-roll" id="btnRoll" onclick="rollCup()">🎲 ROLL THE CUP! 🎲</button>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn-reset" onclick="resetCup()">🔄 Reroll</button>
+      <button class="btn-next" id="btnStep2Next" onclick="goToStep3()" disabled>Next Step 🏁</button>
+    </div>
+  </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
+</div>
+
+<!-- STEP 1: PLAYER SETUP -->
+<div id="screen-step1" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Step 1 of 5 — Players</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👥 Who's Racing?</div>
+    <div class="count-label">Number of Players</div>
+    <div class="count-selector">
+      <button class="count-btn" onclick="setCount(1)">1</button>
+      <button class="count-btn" onclick="setCount(2)">2</button>
+      <button class="count-btn" onclick="setCount(3)">3</button>
+      <button class="count-btn" onclick="setCount(4)">4</button>
+    </div>
+    <div class="players-container" id="playersContainer"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-reset" onclick="resetAll()">🔄 Reset</button>
+    <button class="btn-next" id="btnNext" onclick="goToStep2()" disabled>Next Step 🏁</button>
+  </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  🎵 MARIO KART CHIPTUNE ENGINE (Web Audio API)
+// ══════════════════════════════════════════════
+const MusicEngine = (() => {
+  let ctx = null, masterGain = null;
+  let isPlaying = false, isMuted = false;
+  let scheduledNodes = [];
+  let loopTimeout = null;
+  let started = false;
+
+  // Notes: frequency in Hz. Mario Kart-ish upbeat melody in C major
+  const NOTE = {
+    C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00,
+    A4:440.00, B4:493.88, C5:523.25, D5:587.33, E5:659.25,
+    F5:698.46, G5:783.99, A5:880.00,
+    REST:0
+  };
+
+  // BPM and note duration
+  const BPM = 180;
+  const BEAT = 60 / BPM; // seconds per beat
+  const Q = BEAT;        // quarter note
+  const E = BEAT / 2;    // eighth note
+  const H = BEAT * 2;    // half note
+  const S = BEAT / 4;    // sixteenth note
+
+  // Main melody — upbeat Mario Kart-ish theme
+  const melody = [
+    [NOTE.C5, Q],[NOTE.C5, E],[NOTE.C5, E],
+    [NOTE.C5, Q],[NOTE.A4, Q],
+    [NOTE.G4, H],
+    [NOTE.E4, Q],[NOTE.G4, E],[NOTE.A4, E],
+    [NOTE.C5, H],
+
+    [NOTE.D5, Q],[NOTE.D5, E],[NOTE.D5, E],
+    [NOTE.D5, Q],[NOTE.B4, Q],
+    [NOTE.G4, H],
+    [NOTE.E4, Q],[NOTE.G4, E],[NOTE.B4, E],
+    [NOTE.D5, H],
+
+    [NOTE.E5, Q],[NOTE.D5, E],[NOTE.C5, E],
+    [NOTE.B4, Q],[NOTE.A4, Q],
+    [NOTE.G4, E],[NOTE.A4, E],[NOTE.G4, E],[NOTE.E4, E],
+    [NOTE.C4, H],
+
+    [NOTE.G4, E],[NOTE.A4, E],[NOTE.B4, E],[NOTE.C5, E],
+    [NOTE.D5, Q],[NOTE.E5, Q],
+    [NOTE.G5, E],[NOTE.E5, E],[NOTE.C5, E],[NOTE.E5, E],
+    [NOTE.G5, H],
+  ];
+
+  // Bass line
+  const bass = [
+    [NOTE.C4, H],[NOTE.G4, H],
+    [NOTE.A4, H],[NOTE.E4, H],
+    [NOTE.F4, H],[NOTE.C4, H],
+    [NOTE.G4, H],[NOTE.G4, H],
+
+    [NOTE.D4, H],[NOTE.A4, H],
+    [NOTE.B4, H],[NOTE.G4, H],
+    [NOTE.G4, H],[NOTE.D4, H],
+    [NOTE.G4, H],[NOTE.G4, H],
+
+    [NOTE.C4, H],[NOTE.G4, H],
+    [NOTE.A4, H],[NOTE.E4, H],
+    [NOTE.F4, H],[NOTE.C4, H],
+    [NOTE.G4, H],[NOTE.G4, H],
+
+    [NOTE.C4, H],[NOTE.G4, H],
+    [NOTE.G4, H],[NOTE.C5, H],
+    [NOTE.C5, H],[NOTE.A4, H],
+    [NOTE.G4, H],[NOTE.G4, H],
+  ];
+
+  function createCtx() {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = ctx.createGain();
+      masterGain.gain.value = 0.3;
+      masterGain.connect(ctx.destination);
+    }
+  }
+
+  function playNote(freq, startTime, duration, type='square', gainVal=0.18, detune=0) {
+    if (!ctx || freq === 0) return null;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    if (detune) osc.detune.value = detune;
+    g.gain.setValueAtTime(0, startTime);
+    g.gain.linearRampToValueAtTime(gainVal, startTime + 0.01);
+    g.gain.setValueAtTime(gainVal, startTime + duration * 0.7);
+    g.gain.linearRampToValueAtTime(0, startTime + duration - 0.01);
+    osc.connect(g);
+    g.connect(masterGain);
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+    scheduledNodes.push(osc);
+    return osc;
+  }
+
+  function scheduleLoop(startAt) {
+    if (!isPlaying) return;
+
+    // Melody
+    let t = startAt;
+    melody.forEach(([freq, dur]) => { playNote(freq, t, dur, 'square', 0.15); t += dur; });
+    const loopDuration = t - startAt;
+
+    // Bass (sawtooth, softer, one octave lower)
+    let bt = startAt;
+    bass.forEach(([freq, dur]) => { playNote(freq / 2, bt, dur, 'sawtooth', 0.08); bt += dur; });
+
+    // Percussion - kick on beat 1 & 3, hihat on every beat
+    for (let beat = 0; beat < Math.floor(loopDuration / Q); beat++) {
+      const beatTime = startAt + beat * Q;
+      // Kick (low sine thump)
+      if (beat % 4 === 0 || beat % 4 === 2) {
+        const kick = ctx.createOscillator();
+        const kg = ctx.createGain();
+        kick.type = 'sine';
+        kick.frequency.setValueAtTime(120, beatTime);
+        kick.frequency.exponentialRampToValueAtTime(40, beatTime + 0.1);
+        kg.gain.setValueAtTime(0.25, beatTime);
+        kg.gain.exponentialRampToValueAtTime(0.001, beatTime + 0.15);
+        kick.connect(kg); kg.connect(masterGain);
+        kick.start(beatTime); kick.stop(beatTime + 0.2);
+        scheduledNodes.push(kick);
+      }
+      // Hihat (noise burst)
+      const noise = ctx.createOscillator();
+      const ng = ctx.createGain();
+      noise.type = 'square';
+      noise.frequency.value = 800 + Math.random() * 400;
+      ng.gain.setValueAtTime(0.04, beatTime);
+      ng.gain.exponentialRampToValueAtTime(0.001, beatTime + 0.05);
+      noise.connect(ng); ng.connect(masterGain);
+      noise.start(beatTime); noise.stop(beatTime + 0.06);
+      scheduledNodes.push(noise);
+    }
+
+    // Schedule next loop slightly before this one ends
+    loopTimeout = setTimeout(() => scheduleLoop(startAt + loopDuration), (loopDuration - 0.3) * 1000);
+  }
+
+  function start() {
+    if (isPlaying) return;
+    createCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    isPlaying = true;
+    scheduledNodes = [];
+    scheduleLoop(ctx.currentTime + 0.1);
+  }
+
+  function stop() {
+    isPlaying = false;
+    clearTimeout(loopTimeout);
+    scheduledNodes.forEach(n => { try { n.stop(); } catch(e){} });
+    scheduledNodes = [];
+  }
+
+  function setMuted(muted) {
+    isMuted = muted;
+    if (masterGain) masterGain.gain.value = muted ? 0 : 0.3;
+  }
+
+  return { start, stop, setMuted, get isMuted(){ return isMuted; } };
+})();
+
+let _musicStarted = false;
+function ensureMusicStarted() {
+  if (!_musicStarted) { _musicStarted = true; MusicEngine.start(); }
+}
+
+function toggleMute() {
+  ensureMusicStarted();
+  const muted = !MusicEngine.isMuted;
+  MusicEngine.setMuted(muted);
+  const btn = document.getElementById('muteBtn');
+  btn.textContent = muted ? '🔇' : '🔊';
+  btn.classList.toggle('muted', muted);
+}
+
+// Try to autoplay immediately on load
+window.addEventListener('load', () => { setTimeout(ensureMusicStarted, 300); });
+// Fallback: start on first user interaction if autoplay was blocked
+document.addEventListener('click', ensureMusicStarted, { once: true });
+document.addEventListener('touchstart', ensureMusicStarted, { once: true });
+
+// ══════════════════════════════════════════════
+
+  /* ── NAMES SCREEN ── */
+  let customNames = [];
+
+  function goToNamesKeep() {
+    playerCount = 0;
+    selections = {};
+    showScreen('screen-step1');
+    initStep1Buttons();
+  }
+
+  function initNamesScreen() {
+    const wrap = document.getElementById('namesWrap');
+    wrap.innerHTML = '';
+    customNames = [];
+    for (let i = 0; i < 4; i++) addNameField();
+    checkNamesNext();
+  }
+
+  function addNameField() {
+    const wrap = document.getElementById('namesWrap');
+    const idx = wrap.children.length + 1;
+    const row = document.createElement('div');
+    row.className = 'name-input-row';
+    row.style.animationDelay = `${(idx - 1) * 0.05}s`;
+    row.innerHTML = `
+      <div class="name-number">${idx}</div>
+      <input class="name-input" type="text" maxlength="20" placeholder="Player ${idx} name…" oninput="checkNamesNext()" />
+    `;
+    wrap.appendChild(row);
+    if (idx > 4) setTimeout(() => row.querySelector('input').focus(), 100);
+    checkNamesNext();
+  }
+
+  function checkNamesNext() {
+    const inputs = document.querySelectorAll('#namesWrap .name-input');
+    let filled = 0;
+    inputs.forEach(inp => {
+      const hasValue = inp.value.trim().length > 0;
+      inp.classList.toggle('filled', hasValue);
+      if (hasValue) filled++;
+    });
+    document.getElementById('btnNamesNext').disabled = filled < 2;
+  }
+
+  function confirmNames() {
+    const inputs = document.querySelectorAll('#namesWrap .name-input');
+    customNames = [];
+    inputs.forEach(inp => {
+      const v = inp.value.trim();
+      if (v) customNames.push(v);
+    });
+    NAMES.length = 0;
+    customNames.forEach(n => NAMES.push(n));
+    showScreen('screen-step1');
+    initStep1Buttons();
+  }
+
+  function initStep1Buttons() {
+    // Grey out count buttons beyond the number of entered names
+    document.querySelectorAll('.count-btn').forEach((btn, i) => {
+      const n = i + 1;
+      if (n > customNames.length) {
+        btn.classList.add('unavailable');
+        btn.onclick = null;
+      } else {
+        btn.classList.remove('unavailable');
+        btn.onclick = () => setCount(n);
+      }
+    });
+    playerCount = 0;
+    selections = {};
+    document.getElementById('playersContainer').innerHTML = '';
+    document.getElementById('btnNext').disabled = true;
+  }
+
+  const NAMES = ['Lucia','Rafiq','Joshua','Keon','Felix'];
+  let playerCount = 0;
+  let selections = {};
+
+  // Speed lines
+  const slEl = document.getElementById('speedLines');
+  for (let i = 0; i < 15; i++) {
+    const l = document.createElement('div'); l.className='speed-line';
+    l.style.cssText=`top:${Math.random()*70}%;width:${30+Math.random()*40}%;left:${Math.random()*30}%;animation-delay:${Math.random()*0.8}s;animation-duration:${0.5+Math.random()*0.6}s;opacity:${0.3+Math.random()*0.4};`;
+    slEl.appendChild(l);
+  }
+  // Coins
+  const coinEmojis=['🪙','⭐','🍄','🌟'];
+  setInterval(()=>{
+    const c=document.createElement('div'); c.className='coin';
+    c.textContent=coinEmojis[Math.floor(Math.random()*coinEmojis.length)];
+    c.style.cssText=`left:${10+Math.random()*80}%;bottom:22vh;animation-duration:${3+Math.random()*3}s;font-size:${1+Math.random()}rem;`;
+    document.body.appendChild(c); setTimeout(()=>c.remove(),6000);
+  },1200);
+
+  function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); window.scrollTo(0,0); }
+
+  function confettiBurst(e){
+    const colors=['#FFD700','#FF4444','#44FF44','#4444FF','#FF44FF','#44FFFF','#FF8C00'];
+    for(let i=0;i<30;i++){
+      const p=document.createElement('div'); p.className='confetti-piece';
+      const angle=Math.random()*360*(Math.PI/180), dist=80+Math.random()*200;
+      p.style.cssText=`left:${e.clientX}px;top:${e.clientY}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*720}deg;animation-duration:${0.6+Math.random()*0.6}s;`;
+      document.body.appendChild(p); setTimeout(()=>p.remove(),1200);
+    }
+  }
+
+  function goToStep1(e){ confettiBurst(e); setTimeout(()=>{ showScreen('screen-names'); initNamesScreen(); },300); }
+  function goToStep2(){ showScreen('screen-step2'); initCupGrids(); }
+  function goToStep3(){ showScreen('screen-step3'); initItemsScreen(); }
+  function goToStep4(){ showScreen('screen-step4'); initSlots(); }
+  function goToFinish(){ showScreen('screen-step5'); initVehicleScreen(); }
+  function goToGoodLuck(){ showScreen('screen-goodluck'); buildGoodLuckScreen(); }
+
+  /* ── STEP 5: VEHICLE DATA ── */
+  const VEHICLES = ['Standard Kart','Pipe Frame','Mach 8','Steel Driver','Cat Cruiser','Circuit Special','Tri-Speeder','Badwagon','Prancer','Biddybuggy','Landship','Sneeker','Sports Coupe','Gold Standard','Standard Bike','Comet','Sport Bike','The Duke','Flame Rider','Varmint','Mr. Scooty','Jet Bike','Yoshi Bike','Master Cycle','Master Cycle Zero','City Tripper','Standard ATV','Wild Wiggler','Teddy Buggy','Bone Rattler','Splat Buggy','Inkstriker','Koopa Clown','Tanooki Kart','B Dasher','Streetle','P-Wing','Blue Falcon','W 25 Silver Arrow','300 SL Roadster','GLA'];
+  const TIRES    = ['Standard','Monster','Roller','Slim','Slick','Metal','Button','Off-Road','Sponge','Wood','Cushion','Blue Standard','Hot Monster','Azure Roller','Crimson Slim','Cyber Slick','Retro Off-Road','Gold Tires','GLA Tires','Triforce Tires','Leaf Tires','Ancient Tires'];
+  const GLIDERS  = ['Super Glider','Cloud Glider','Wario Wing','Waddle Wing','Peach Parasol','Parachute','Parafoil','Flower Glider','Bowser Kite','Plane Glider','MKTV Parafoil','Gold Glider','Hylian Kite','Paper Glider','Paraglider'];
+
+  const REEL_POOLS = [VEHICLES, TIRES, GLIDERS];
+  const REEL_LABELS = ['🚗 CAR', '🔵 TIRES', '🪂 GLIDER'];
+  const REEL_KEYS   = ['car','tires','glider'];
+
+  let vehicleResults = {}; // { playerName: { car, tires, glider } }
+  let vehicleSpinning = false;
+  let currentVehicleRound = 0; // 0=none, 1=car, 2=tires, 3=glider
+
+  function initVehicleScreen() {
+    vehicleResults = {};
+    vehicleSpinning = false;
+    currentVehicleRound = 0;
+    document.getElementById('btnStep5Next').disabled = true;
+    document.getElementById('btnVehicleSpin').disabled = false;
+    document.getElementById('roundIndicator').innerHTML = '<span>Press SPIN to start!</span>';
+
+    const wrap = document.getElementById('vehicleMachines');
+    wrap.innerHTML = '';
+
+    for (let i = 1; i <= playerCount; i++) {
+      const playerName = selections[i] || `Player ${i}`;
+      vehicleResults[playerName] = { car: null, tires: null, glider: null };
+
+      const machine = document.createElement('div');
+      machine.className = 'player-machine';
+      machine.id = `vmachine-${i}`;
+
+      const reelsHTML = REEL_LABELS.map((label, ri) => `
+        ${ri > 0 ? '<div class="vreel-div"></div>' : ''}
+        <div class="vehicle-reel-col">
+          <div class="vehicle-reel-label">${label}</div>
+          <div class="vehicle-reel-frame" id="vframe-${i}-${ri}">
+            <div class="vehicle-strip" id="vstrip-${i}-${ri}"></div>
+          </div>
+        </div>
+      `).join('');
+
+      const resultsHTML = REEL_KEYS.map((key, ri) => `
+        <div class="vehicle-result-cell" id="vresult-${i}-${ri}">
+          <span class="vr-label">${REEL_LABELS[ri].split(' ')[1]}</span>
+          <span id="vresult-val-${i}-${ri}">—</span>
+        </div>
+      `).join('');
+
+      machine.innerHTML = `
+        <div class="player-machine-header">
+          <div class="player-machine-name">🎮 ${playerName}</div>
+          <div class="player-machine-status" id="vstatus-${i}">Ready</div>
+        </div>
+        <div class="vehicle-reels-row">${reelsHTML}</div>
+        <div class="vehicle-results-row">${resultsHTML}</div>
+      `;
+      wrap.appendChild(machine);
+
+      // Populate all 3 strips with initial random names
+      for (let ri = 0; ri < 3; ri++) populateVStrip(i, ri, null);
+    }
+  }
+
+  function populateVStrip(playerIdx, reelIdx, winner) {
+    const strip = document.getElementById(`vstrip-${playerIdx}-${reelIdx}`);
+    if (!strip) return;
+    const pool = [...REEL_POOLS[reelIdx]].sort(() => Math.random() - 0.5).slice(0, 5);
+    if (winner) pool[2] = winner;
+    strip.innerHTML = pool.map((name, i) => {
+      let cls = 'vehicle-strip-item';
+      if (i === 2) cls += winner ? ' vwinner' : ' vcenter';
+      return `<div class="${cls}">${name}</div>`;
+    }).join('');
+    strip.style.top = '-36px';
+  }
+
+  function startVehicleSpin() {
+    if (vehicleSpinning) return;
+    vehicleSpinning = true;
+    document.getElementById('btnVehicleSpin').disabled = true;
+    document.getElementById('btnStep5Next').disabled   = true;
+    currentVehicleRound = 1;
+    runVehicleRound(1);
+  }
+
+  function runVehicleRound(roundIdx) {
+    // roundIdx: 1=car, 2=tires, 3=glider
+    const reelIdx = roundIdx - 1;
+    const label   = ['CAR','TIRES','GLIDER'][reelIdx];
+    document.getElementById('roundIndicator').innerHTML = `Rolling <span>${label}</span> for all players…`;
+
+    // Pick final values for all players for this reel
+    const finals = {};
+    for (let i = 1; i <= playerCount; i++) {
+      const pool = REEL_POOLS[reelIdx];
+      finals[i] = pool[Math.floor(Math.random() * pool.length)];
+      // Mark frame spinning
+      const frame  = document.getElementById(`vframe-${i}-${reelIdx}`);
+      const status = document.getElementById(`vstatus-${i}`);
+      if (frame)  frame.classList.add('v-spinning');
+      if (status) { status.className='player-machine-status spinning'; status.textContent='▼ spinning…'; }
+    }
+
+    // Animate all reels simultaneously
+    const totalFrames = 28 + Math.floor(Math.random() * 10);
+    let frame_n = 0;
+
+    function nextFrame() {
+      if (frame_n >= totalFrames) {
+        // Lock all reels for this round
+        for (let i = 1; i <= playerCount; i++) {
+          const finalChar = finals[i];
+          populateVStrip(i, reelIdx, finalChar);
+          const frame  = document.getElementById(`vframe-${i}-${reelIdx}`);
+          const status = document.getElementById(`vstatus-${i}`);
+          const resultCell = document.getElementById(`vresult-${i}-${reelIdx}`);
+          const resultVal  = document.getElementById(`vresult-val-${i}-${reelIdx}`);
+          if (frame)  { frame.classList.remove('v-spinning'); frame.classList.add('v-done'); }
+
+          const playerName = selections[i] || `Player ${i}`;
+          vehicleResults[playerName][REEL_KEYS[reelIdx]] = finalChar;
+
+          if (resultCell) resultCell.classList.add('vvisible');
+          if (resultVal)  resultVal.textContent = finalChar;
+
+          // Only update status after all rounds
+          if (roundIdx === 3 && status) {
+            status.className='player-machine-status done';
+            status.textContent='✓ Done!';
+          }
+        }
+
+        // Confetti & move to next round
+        smallConfetti();
+        document.getElementById('roundIndicator').innerHTML =
+          roundIdx < 3
+            ? `✅ <span>${label}</span> locked! Next up…`
+            : `🏁 All done! <span>Let's Race!</span>`;
+
+        if (roundIdx < 3) {
+          setTimeout(() => runVehicleRound(roundIdx + 1), 1000);
+        } else {
+          vehicleSpinning = false;
+          document.getElementById('btnStep5Next').disabled   = false;
+          bigConfetti();
+        }
+      } else {
+        // Spin all strips
+        for (let i = 1; i <= playerCount; i++) {
+          const strip = document.getElementById(`vstrip-${i}-${reelIdx}`);
+          if (strip) {
+            const offset = -36 - ((frame_n % 3) * 12);
+            strip.style.top = offset + 'px';
+            populateVStrip(i, reelIdx, null);
+          }
+        }
+        frame_n++;
+        const progress = frame_n / totalFrames;
+        setTimeout(nextFrame, 40 + Math.pow(progress, 2.8) * 400);
+      }
+    }
+    nextFrame();
+  }
+
+  function resetVehicles() { initVehicleScreen(); }
+
+  /* ── GOOD LUCK SCREEN ── */
+  function buildGoodLuckScreen() {
+    const wrap = document.getElementById('glPlayersWrap');
+    wrap.innerHTML = '';
+
+    for (let i = 1; i <= playerCount; i++) {
+      const playerName = selections[i] || `Player ${i}`;
+      const isRafiq = playerName.toLowerCase() === 'rafiq';
+      const char    = charResults[playerName]    || '?';
+      const vehicle = vehicleResults[playerName] || {};
+
+      const card = document.createElement('div');
+      card.className = `gl-player-card${isRafiq ? ' rafiq-card' : ''}`;
+      card.style.animationDelay = `${(i-1)*0.12}s`;
+      card.innerHTML = `
+        <div class="gl-player-name">${CHAR_EMOJI[char]||'🎮'} ${playerName}</div>
+        <div class="gl-player-char">
+          🎭 ${char} &nbsp;|&nbsp;
+          🚗 ${vehicle.car||'?'} &nbsp;|&nbsp;
+          🔵 ${vehicle.tires||'?'} &nbsp;|&nbsp;
+          🪂 ${vehicle.glider||'?'}
+        </div>
+        ${isRafiq ? '<div class="gl-rafiq-msg">⚠️ Keep it between the LINES, Rafiq! ⚠️</div>' : ''}
+      `;
+      wrap.appendChild(card);
+    }
+
+    // Big confetti on entry
+    setTimeout(() => bigConfetti(), 400);
+  }
+
+  /* ── STEP 3: ITEMS DATA & LOGIC ── */
+  const ITEMS = [
+    {emoji:'🍌',      name:'Banana'},
+    {emoji:'🍌🍌🍌',  name:'Triple Banana'},
+    {emoji:'🐢',      name:'Green Shell'},
+    {emoji:'🐢🐢🐢',  name:'Triple Green'},
+    {emoji:'🔴🐢',    name:'Red Shell'},
+    {emoji:'🔴🐢🐢',  name:'Triple Red'},
+    {emoji:'💙🐢',    name:'Blue Shell'},
+    {emoji:'💣',      name:'Bob-omb'},
+    {emoji:'🍄',      name:'Mushroom'},
+    {emoji:'🍄🍄🍄',  name:'Triple Mush'},
+    {emoji:'✨🍄',    name:'Golden Mush'},
+    {emoji:'💥',      name:'Bullet Bill'},
+    {emoji:'🦑',      name:'Blooper'},
+    {emoji:'⚡',      name:'Lightning'},
+    {emoji:'⭐',      name:'Star'},
+    {emoji:'🌸',      name:'Fire Flower'},
+    {emoji:'🪃',      name:'Boomerang'},
+    {emoji:'🌱',      name:'Piranha'},
+    {emoji:'📷',      name:'Camera'},
+    {emoji:'🎱',      name:'Crazy Eight'},
+    {emoji:'🪙',      name:'Coin'},
+    {emoji:'👻',      name:'Boo'},
+  ];
+
+  let selectedItems = [];
+  let itemsRolling = false;
+
+  function initItemsScreen() {
+    selectedItems = [];
+    itemsRolling = false;
+    document.getElementById('itemCountDisplay').textContent = '?';
+    document.getElementById('btnStep3Next').disabled = true;
+    document.getElementById('btnItemsRoll').disabled = false;
+    document.getElementById('itemsResultBar').className = 'items-result-bar';
+    document.getElementById('itemsResultBar').innerHTML = '<span style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-weight:700;letter-spacing:1px;">Press ROLL to randomize items</span>';
+    renderItemsGrid([]);
+  }
+
+  function renderItemsGrid(activeIndices) {
+    const grid = document.getElementById('itemsGrid');
+    grid.innerHTML = '';
+    ITEMS.forEach((item, i) => {
+      const tile = document.createElement('div');
+      tile.className = 'item-tile' + (activeIndices.includes(i) ? ' active' : '');
+      tile.id = `item-tile-${i}`;
+      tile.innerHTML = `<span>${item.emoji}</span><div class="item-name">${item.name}</div>`;
+      grid.appendChild(tile);
+    });
+  }
+
+  function rollItems() {
+    if (itemsRolling) return;
+    itemsRolling = true;
+    selectedItems = [];
+    document.getElementById('btnItemsRoll').disabled = true;
+    document.getElementById('btnStep3Next').disabled = true;
+    document.getElementById('itemsResultBar').className = 'items-result-bar';
+    document.getElementById('itemsResultBar').innerHTML = '<span style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-weight:700;letter-spacing:1px;">🌀 Rolling...</span>';
+    renderItemsGrid([]);
+
+    const finalCount = Math.floor(Math.random() * 23); // 0–22
+    const countEl = document.getElementById('itemCountDisplay');
+    let countStep = 0;
+    const countSteps = 25;
+
+    function animateCount() {
+      countEl.textContent = Math.floor(Math.random() * 23);
+      countEl.style.animation = 'none'; void countEl.offsetWidth;
+      countEl.style.animation = 'countPop 0.3s cubic-bezier(0.34,1.56,0.64,1)';
+      countStep++;
+      if (countStep < countSteps) {
+        setTimeout(animateCount, 40 + Math.pow(countStep/countSteps, 2) * 200);
+      } else {
+        countEl.textContent = finalCount;
+        countEl.style.animation = 'none'; void countEl.offsetWidth;
+        countEl.style.animation = 'countPop 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        setTimeout(() => animateItemFlash(finalCount), 300);
+      }
+    }
+    animateCount();
+  }
+
+  function animateItemFlash(count) {
+    const flashSteps = 28;
+    let flashStep = 0, lastFlashed = -1;
+    function flash() {
+      if (lastFlashed >= 0) document.getElementById(`item-tile-${lastFlashed}`)?.classList.remove('flashing');
+      const rnd = Math.floor(Math.random() * ITEMS.length);
+      document.getElementById(`item-tile-${rnd}`)?.classList.add('flashing');
+      lastFlashed = rnd;
+      flashStep++;
+      if (flashStep < flashSteps) {
+        setTimeout(flash, 30 + Math.pow(flashStep/flashSteps, 2.2) * 160);
+      } else {
+        document.getElementById(`item-tile-${lastFlashed}`)?.classList.remove('flashing');
+        revealItems(count);
+      }
+    }
+    flash();
+  }
+
+  function revealItems(count) {
+    const shuffled = [...ITEMS.keys()].sort(() => Math.random() - 0.5);
+    const activeIndices = shuffled.slice(0, count);
+    selectedItems = activeIndices.map(i => ITEMS[i]);
+    renderItemsGrid([]);
+    activeIndices.forEach((idx, i) => {
+      setTimeout(() => document.getElementById(`item-tile-${idx}`)?.classList.add('active'), i * 55);
+    });
+
+    const countEl = document.getElementById('itemCountDisplay');
+    countEl.textContent = count;
+    countEl.style.animation = 'none'; void countEl.offsetWidth;
+    countEl.style.animation = 'countPop 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+
+    setTimeout(() => {
+      const bar = document.getElementById('itemsResultBar');
+      bar.className = 'items-result-bar revealed';
+      if (count === 0) {
+        bar.innerHTML = '<span class="no-items-text">🚫 NO ITEMS — Pure Skill!</span>';
+      } else {
+        bar.innerHTML = selectedItems.map((item, i) =>
+          `<span class="result-item-emoji" style="animation-delay:${i*0.04}s">${item.emoji}</span>`
+        ).join('');
+      }
+    }, count * 55 + 200);
+
+    setTimeout(() => {
+      const cx=window.innerWidth/2, cy=window.innerHeight/2;
+      const colors=['#FFD700','#FF4444','#44FF44','#4444FF','#FF44FF','#44FFFF','#FF8C00'];
+      for(let i=0;i<40;i++){
+        const p=document.createElement('div'); p.className='confetti-piece';
+        const angle=Math.random()*360*(Math.PI/180), dist=80+Math.random()*220;
+        p.style.cssText=`left:${cx}px;top:${cy}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*720}deg;animation-duration:${0.7+Math.random()*0.6}s;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;`;
+        document.body.appendChild(p); setTimeout(()=>p.remove(),1400);
+      }
+    }, count * 55 + 400);
+
+    itemsRolling = false;
+    document.getElementById('btnStep3Next').disabled = false;
+  }
+
+  function resetItems() { initItemsScreen(); }
+
+  /* ── STEP 2: CUP DATA & LOGIC ── */
+  const GOLD_CUPS = [
+    {emoji:'🍄',name:'Mushroom'}, {emoji:'🌸',name:'Flower'},   {emoji:'⭐',name:'Star'},
+    {emoji:'👑',name:'Special'},  {emoji:'🥚',name:'Egg'},       {emoji:'🌿',name:'Crossing'},
+    {emoji:'🐚',name:'Shell'},    {emoji:'🍌',name:'Banana'},    {emoji:'🍂',name:'Leaf'},
+    {emoji:'⚡',name:'Lightning'},{emoji:'🔱',name:'Triforce'},  {emoji:'🔔',name:'Bell'}
+  ];
+  const SILVER_CUPS = [
+    {emoji:'💛',name:'Golden Dash'},{emoji:'🐱',name:'Lucky Cat'},{emoji:'🌱',name:'Turnip'},
+    {emoji:'🚁',name:'Propeller'},  {emoji:'🪨',name:'Rock'},     {emoji:'🌙',name:'Moon'},
+    {emoji:'🍊',name:'Fruit'},      {emoji:'🪃',name:'Boomerang'},{emoji:'🪶',name:'Feather'},
+    {emoji:'🍒',name:'Cherry'},     {emoji:'🌰',name:'Acorn'},    {emoji:'🦔',name:'Spiny'}
+  ];
+  const ALL_CUPS = [...GOLD_CUPS.map((c,i)=>({...c,type:'gold',idx:i})), ...SILVER_CUPS.map((c,i)=>({...c,type:'silver',idx:i}))];
+
+  let selectedCup = null;
+  let isRolling = false;
+  let cupTiles = [];
+
+  function initCupGrids() {
+    selectedCup = null;
+    isRolling = false;
+    document.getElementById('btnStep2Next').disabled = true;
+    document.getElementById('btnRoll').disabled = false;
+    document.getElementById('resultBox').className = 'result-box';
+    document.getElementById('resultBox').innerHTML = '<span class="result-hint">🎲 Press ROLL to spin the wheel!</span>';
+
+    cupTiles = [];
+    buildGrid('goldGrid',   GOLD_CUPS,   'gold-cup');
+    buildGrid('silverGrid', SILVER_CUPS, 'silver-cup');
+  }
+
+  function buildGrid(gridId, cups, cls) {
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    cups.forEach((cup, i) => {
+      const tile = document.createElement('div');
+      tile.className = `cup-tile ${cls}`;
+      tile.dataset.cupIndex = ALL_CUPS.findIndex(c=>c.name===cup.name);
+      tile.innerHTML = `<span>${cup.emoji}</span><div class="cup-name">${cup.name}</div>`;
+      grid.appendChild(tile);
+      cupTiles.push(tile);
+    });
+  }
+
+  function rollCup() {
+    if (isRolling) return;
+    isRolling = true;
+    selectedCup = null;
+    document.getElementById('btnRoll').disabled = true;
+    document.getElementById('btnStep2Next').disabled = true;
+    document.getElementById('resultBox').className = 'result-box';
+    document.getElementById('resultBox').innerHTML = '<span class="result-hint">🌀 Spinning...</span>';
+
+    // Clear all highlights
+    cupTiles.forEach(t => { t.classList.remove('winner','rolling'); });
+
+    const finalIdx   = Math.floor(Math.random() * ALL_CUPS.length);
+    const flashSteps = 38;
+    let flashStep = 0, lastFlashed = -1;
+
+    function flash() {
+      // Remove previous flash
+      if (lastFlashed >= 0) cupTiles[lastFlashed]?.classList.remove('rolling');
+      // Pick a random tile
+      const rnd = Math.floor(Math.random() * cupTiles.length);
+      cupTiles[rnd]?.classList.add('rolling');
+      lastFlashed = rnd;
+      flashStep++;
+      if (flashStep < flashSteps) {
+        setTimeout(flash, 30 + Math.pow(flashStep / flashSteps, 2.2) * 360);
+      } else {
+        cupTiles[lastFlashed]?.classList.remove('rolling');
+        revealWinner(finalIdx);
+      }
+    }
+    flash();
+  }
+
+  function revealWinner(idx) {
+    cupTiles.forEach(t => t.classList.remove('rolling'));
+    cupTiles[idx].classList.add('winner');
+    selectedCup = ALL_CUPS[idx];
+    isRolling = false;
+
+    const resultBox = document.getElementById('resultBox');
+    resultBox.className = 'result-box revealed';
+    resultBox.innerHTML = `
+      <span class="result-cup-icon">${selectedCup.emoji}</span>
+      <div class="result-cup-name">${selectedCup.name} Cup</div>
+    `;
+
+    // Big confetti burst from center
+    const cx = window.innerWidth/2, cy = window.innerHeight/2;
+    const colors=['#FFD700','#FF4444','#44FF44','#4444FF','#FF44FF','#44FFFF','#FF8C00'];
+    for(let i=0;i<50;i++){
+      const p=document.createElement('div'); p.className='confetti-piece';
+      const angle=Math.random()*360*(Math.PI/180), dist=100+Math.random()*250;
+      p.style.cssText=`left:${cx}px;top:${cy}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*720}deg;animation-duration:${0.8+Math.random()*0.6}s;width:${6+Math.random()*10}px;height:${6+Math.random()*10}px;`;
+      document.body.appendChild(p); setTimeout(()=>p.remove(),1600);
+    }
+
+    document.getElementById('btnStep2Next').disabled = false;
+  }
+
+  function resetCup() {
+    initCupGrids();
+  }
+
+  function setCount(n){
+    playerCount=n;
+    document.querySelectorAll('.count-btn').forEach((b,i)=>b.classList.toggle('selected',i+1===n));
+    for(let k in selections){ if(parseInt(k)>n) delete selections[k]; }
+    renderRows();
+  }
+
+  function renderRows(){
+    const container=document.getElementById('playersContainer');
+    container.innerHTML='';
+    for(let i=1;i<=playerCount;i++){
+      const row=document.createElement('div'); row.className='player-row'; row.style.animationDelay=`${(i-1)*0.08}s`;
+      const lbl=document.createElement('div'); lbl.className='player-label'; lbl.innerHTML=`Player <span>${i}</span>`;
+      const sel=document.createElement('select'); sel.className='player-select'; sel.dataset.player=i;
+      const ph=document.createElement('option'); ph.value=''; ph.textContent='— Choose name —'; ph.disabled=true; ph.selected=!selections[i]; sel.appendChild(ph);
+      NAMES.forEach(name=>{
+        const usedBy=Object.entries(selections).find(([k,v])=>v===name&&parseInt(k)!==i);
+        if(usedBy) return;
+        const opt=document.createElement('option'); opt.value=name; opt.textContent=name;
+        if(selections[i]===name) opt.selected=true;
+        sel.appendChild(opt);
+      });
+      if(selections[i]) sel.classList.add('chosen');
+      sel.addEventListener('change',function(){ selections[parseInt(this.dataset.player)]=this.value; renderRows(); checkNext(); });
+      row.appendChild(lbl); row.appendChild(sel); container.appendChild(row);
+    }
+    checkNext();
+  }
+
+  function checkNext(){
+    const allFilled=playerCount>0&&Object.keys(selections).filter(k=>parseInt(k)<=playerCount).length===playerCount;
+    document.getElementById('btnNext').disabled=!allFilled;
+  }
+
+  function resetAll(){
+    playerCount=0; selections={};
+    document.querySelectorAll('.count-btn').forEach(b=>b.classList.remove('selected'));
+    document.getElementById('playersContainer').innerHTML='';
+    document.getElementById('btnNext').disabled=true;
+  }
+
+  /* ── STEP 4: CHARACTER SLOT MACHINE ── */
+  const ALL_CHARACTERS = [
+    'Mario','Luigi','Peach','Daisy','Rosalina','Tanooki Mario','Cat Peach',
+    'Yoshi','Toad','Koopa Troopa','Shy Guy','Lakitu','Toadette','King Boo',
+    'Baby Mario','Baby Luigi','Baby Peach','Baby Daisy','Baby Rosalina',
+    'Metal Mario','Pink Gold Peach','Bowser','Dry Bowser','Bowser Jr.',
+    'Wario','Waluigi','Donkey Kong','Wiggler','Morton','Roy','Larry',
+    'Wendy','Iggy','Ludwig','Lemmy','Link','Villager (Male)','Villager (Female)',
+    'Isabelle','Inkling Boy','Inkling Girl','Birdo','Petey Piranha','Kamek',
+    'Diddy Kong','Funky Kong','Pauline','Peachette'
+  ];
+  const CHAR_EMOJI = {
+    'Mario':'🔴','Luigi':'💚','Peach':'👑','Daisy':'🌼','Rosalina':'⭐',
+    'Tanooki Mario':'🦝','Cat Peach':'🐱','Yoshi':'🦎','Toad':'🍄',
+    'Koopa Troopa':'🐢','Shy Guy':'😶','Lakitu':'☁️','Toadette':'🎀',
+    'King Boo':'👻','Baby Mario':'👶','Baby Luigi':'💚','Baby Peach':'🍬',
+    'Baby Daisy':'🌸','Baby Rosalina':'🌙','Metal Mario':'⚙️',
+    'Pink Gold Peach':'💗','Bowser':'🐉','Dry Bowser':'💀','Bowser Jr.':'🎭',
+    'Wario':'💛','Waluigi':'🟣','Donkey Kong':'🦍','Wiggler':'🐛',
+    'Morton':'⬛','Roy':'🩷','Larry':'🌿','Wendy':'🎀','Iggy':'🌀',
+    'Ludwig':'🎵','Lemmy':'🎪','Link':'🗡️','Villager (Male)':'🏡',
+    'Villager (Female)':'🌱','Isabelle':'🐕','Inkling Boy':'🦑',
+    'Inkling Girl':'🦑','Birdo':'🎀','Petey Piranha':'🌺','Kamek':'🔮',
+    'Diddy Kong':'🐵','Funky Kong':'🕶️','Pauline':'🎤','Peachette':'🌸'
+  };
+
+  let charResults = {};
+  let usedChars   = [];
+  let isSpinning  = false;
+
+  function initSlots() {
+    charResults = {}; usedChars = []; isSpinning = false;
+    document.getElementById('btnStep4Next').disabled = true;
+    document.getElementById('btnSpinAll').disabled   = false;
+
+    const reelsRow     = document.getElementById('reelsRow');
+    const resultsStrip = document.getElementById('resultsStrip');
+    reelsRow.innerHTML     = '';
+    resultsStrip.innerHTML = '';
+
+    for (let i = 1; i <= playerCount; i++) {
+      if (i > 1) {
+        const div = document.createElement('div');
+        div.className = 'reel-divider';
+        reelsRow.appendChild(div);
+      }
+      const playerName = selections[i] || `P${i}`;
+      const col = document.createElement('div');
+      col.className = 'slot-reel-col';
+      col.innerHTML = `
+        <div class="slot-player-label">${playerName}</div>
+        <div class="slot-reel-frame" id="reel-frame-${i}">
+          <div class="slot-strip" id="strip-${i}"></div>
+        </div>
+        <div class="slot-reel-status" id="reel-status-${i}">Ready</div>
+      `;
+      reelsRow.appendChild(col);
+      populateStrip(i, null);
+
+      const cell = document.createElement('div');
+      cell.className = 'slot-result-cell';
+      cell.id = `result-cell-${i}`;
+      cell.innerHTML = `<span class="slot-result-cell-emoji">🎮</span><div class="slot-result-cell-name">?</div>`;
+      resultsStrip.appendChild(cell);
+    }
+  }
+
+  function populateStrip(idx, winner) {
+    const strip = document.getElementById(`strip-${idx}`);
+    if (!strip) return;
+    const pool = [...ALL_CHARACTERS].sort(() => Math.random() - 0.5).slice(0, 7);
+    if (winner) pool[3] = winner;
+    strip.innerHTML = pool.map((name, i) => {
+      let cls = 'slot-strip-item';
+      if (i === 3) cls += winner ? ' winner-item' : ' center-item';
+      return `<div class="${cls}">${name}</div>`;
+    }).join('');
+    strip.style.top = '-52px';
+  }
+
+  function startSpinning() {
+    if (isSpinning) return;
+    isSpinning = true;
+    document.getElementById('btnSpinAll').disabled   = true;
+    document.getElementById('btnStep4Next').disabled = true;
+    spinNextPlayer(1);
+  }
+
+  function spinNextPlayer(playerIdx) {
+    if (playerIdx > playerCount) {
+      isSpinning = false;
+      document.getElementById('btnStep4Next').disabled = false;
+      bigConfetti();
+      return;
+    }
+    const available = ALL_CHARACTERS.filter(c => !usedChars.includes(c));
+    const finalChar  = available[Math.floor(Math.random() * available.length)];
+    const frame  = document.getElementById(`reel-frame-${playerIdx}`);
+    const strip  = document.getElementById(`strip-${playerIdx}`);
+    const status = document.getElementById(`reel-status-${playerIdx}`);
+
+    frame.classList.add('is-spinning');
+    status.className   = 'slot-reel-status spinning';
+    status.textContent = '▼ spinning ▼';
+
+    const totalFrames = 30 + Math.floor(Math.random() * 14);
+    let frame_n = 0;
+
+    function nextFrame() {
+      if (frame_n >= totalFrames) {
+        // Land!
+        populateStrip(playerIdx, finalChar);
+        frame.classList.remove('is-spinning');
+        frame.classList.add('is-done');
+        status.className   = 'slot-reel-status done';
+        status.textContent = '✓ locked';
+
+        const playerName = selections[playerIdx] || `Player ${playerIdx}`;
+        charResults[playerName] = finalChar;
+        usedChars.push(finalChar);
+
+        const cell = document.getElementById(`result-cell-${playerIdx}`);
+        if (cell) {
+          cell.querySelector('.slot-result-cell-emoji').textContent = CHAR_EMOJI[finalChar] || '🎮';
+          cell.querySelector('.slot-result-cell-name').textContent  = finalChar;
+          cell.classList.add('visible');
+        }
+        smallConfetti();
+        setTimeout(() => spinNextPlayer(playerIdx + 1), 800);
+      } else {
+        // Keep spinning — swap strip contents and shift position
+        const offset = -52 - ((frame_n % 4) * 11);
+        if (strip) strip.style.top = offset + 'px';
+        populateStrip(playerIdx, null);
+
+        frame_n++;
+        const progress = frame_n / totalFrames;
+        const speedMultiplier = progress > 0.5 ? 0.5 : 1;
+        setTimeout(nextFrame, (45 + Math.pow(progress, 2.8) * 420) * speedMultiplier);
+      }
+    }
+    nextFrame();
+  }
+
+  function smallConfetti() {
+    const cx=window.innerWidth/2, cy=window.innerHeight/2;
+    const colors=['#FFD700','#44FF88','#FF8C00','#fff'];
+    for(let i=0;i<22;i++){
+      const p=document.createElement('div'); p.className='confetti-piece';
+      const angle=Math.random()*360*(Math.PI/180), dist=60+Math.random()*150;
+      p.style.cssText=`left:${cx}px;top:${cy}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*540}deg;animation-duration:${0.6+Math.random()*0.5}s;width:7px;height:7px;`;
+      document.body.appendChild(p); setTimeout(()=>p.remove(),1200);
+    }
+  }
+
+  function bigConfetti() {
+    const cx=window.innerWidth/2, cy=window.innerHeight/2;
+    const colors=['#FFD700','#FF4444','#44FF88','#4444FF','#FF44FF','#44FFFF','#FF8C00'];
+    for(let i=0;i<70;i++){
+      const p=document.createElement('div'); p.className='confetti-piece';
+      const angle=Math.random()*360*(Math.PI/180), dist=100+Math.random()*280;
+      p.style.cssText=`left:${cx}px;top:${cy}px;background:${colors[Math.floor(Math.random()*colors.length)]};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;--rot:${Math.random()*720}deg;animation-duration:${0.8+Math.random()*0.8}s;width:${6+Math.random()*10}px;height:${6+Math.random()*10}px;`;
+      document.body.appendChild(p); setTimeout(()=>p.remove(),1700);
+    }
+  }
+
+  function resetCharacters() { initSlots(); }
+</script>
+<!-- STEP 3: ITEMS -->
+<div id="screen-step3" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Step 3 of 5 — Items Setup</div>
+  </div>
+
+  <div class="card" style="padding:16px 12px;">
+    <div class="card-title">🎁 Which Items?</div>
+
+    <div class="items-count-display">
+      <div class="count-number" id="itemCountDisplay">?</div>
+      <div class="count-sublabel">items active</div>
+    </div>
+
+    <div class="items-result-bar" id="itemsResultBar">
+      <span style="color:rgba(255,255,255,0.5);font-size:0.85rem;font-weight:700;letter-spacing:1px;">Press ROLL to randomize items</span>
+    </div>
+
+    <div class="items-grid" id="itemsGrid"></div>
+  </div>
+
+  <div style="width:92%;max-width:420px;margin-top:16px;animation:cardEntry 0.7s 0.3s cubic-bezier(0.34,1.56,0.64,1) backwards;">
+    <button class="btn-roll" id="btnItemsRoll" onclick="rollItems()">🎲 ROLL THE ITEMS! 🎲</button>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn-reset" onclick="resetItems()">🔄 Reroll</button>
+      <button class="btn-next" id="btnStep3Next" onclick="goToStep4()" disabled>Next Step 🏁</button>
+    </div>
+  </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
+</div>
+
+<!-- STEP 4: CHARACTER SLOT MACHINE -->
+<div id="screen-step4" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Step 4 of 5 — Characters</div>
+  </div>
+
+  <div class="card" style="padding:16px 14px;">
+    <div class="card-title">🎰 Spin Your Character!</div>
+
+    <div class="slot-machine" id="slotMachine">
+      <div class="slot-machine-top">✦ MARIO KART DESTINY ✦</div>
+
+      <!-- Decorative lights -->
+      <div class="slot-machine-lights left">
+        <div class="slot-light"></div>
+        <div class="slot-light"></div>
+        <div class="slot-light"></div>
+        <div class="slot-light"></div>
+      </div>
+      <div class="slot-machine-lights right">
+        <div class="slot-light" style="animation-delay:0.15s"></div>
+        <div class="slot-light" style="animation-delay:0.45s"></div>
+        <div class="slot-light" style="animation-delay:0.75s"></div>
+        <div class="slot-light" style="animation-delay:1.05s"></div>
+      </div>
+
+      <div class="slot-reels-row" id="reelsRow"></div>
+
+      <div class="slot-results-strip" id="resultsStrip"></div>
+    </div>
+  </div>
+
+  <div style="width:92%;max-width:420px;margin-top:16px;animation:cardEntry 0.7s 0.3s cubic-bezier(0.34,1.56,0.64,1) backwards;">
+    <button class="btn-spin-all" id="btnSpinAll" onclick="startSpinning()">🎰 SPIN! 🎰</button>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn-reset" onclick="resetCharacters()">🔄 Respin</button>
+      <button class="btn-next" id="btnStep4Next" onclick="goToFinish()" disabled>Next Step 🏁</button>
+    </div>
+  </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
+</div>
+<!-- STEP 5: VEHICLE SETUP -->
+<div id="screen-step5" class="screen">
+  <div class="page-header">
+    <div class="logo-small">MARIO KART</div>
+    <div class="logo-destiny-sm">✨ DESTINY ✨</div>
+    <div class="step-badge">Step 5 of 5 — Vehicle Setup</div>
+  </div>
+
+  <div class="card" style="padding:14px 12px;">
+    <div class="card-title">🏎️ Build Your Kart!</div>
+    <div class="round-indicator" id="roundIndicator"><span>Press SPIN to start!</span></div>
+    <div class="vehicle-machines-wrap" id="vehicleMachines"></div>
+  </div>
+
+  <div style="width:92%;max-width:420px;margin-top:14px;animation:cardEntry 0.7s 0.3s cubic-bezier(0.34,1.56,0.64,1) backwards;">
+    <button class="btn-spin-all" id="btnVehicleSpin" onclick="startVehicleSpin()">🎰 SPIN! 🎰</button>
+    <div class="btn-row" style="margin-top:0;">
+      <button class="btn-reset" onclick="resetVehicles()">🔄 Respin</button>
+      <button class="btn-next" id="btnStep5Next" onclick="goToGoodLuck()" disabled>Finish! 🏁</button>
+    </div>
+  </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
+</div>
+
+<!-- MUTE BUTTON -->
+<button id="muteBtn" onclick="toggleMute()" title="Toggle music">🔊</button>
+
+<!-- GOOD LUCK SCREEN -->
+<div id="screen-goodluck" class="screen">
+  <div class="goodluck-content">
+    <span class="gl-trophy">🏆</span>
+    <div class="gl-title">YOUR DESTINY</div>
+    <div class="gl-title" style="font-size:clamp(1.8rem,7vw,2.8rem);">IS SET!</div>
+    <div class="gl-subtitle">Good Luck Racers! 🏁</div>
+    <div class="gl-players-wrap" id="glPlayersWrap"></div>
+    <span class="gl-flag">🏁</span>
+    <button class="gl-start-btn" onclick="goToNamesKeep()">🔄 Play Again!</button>
+  </div>
+</div>
+
+</body>
+</html>
