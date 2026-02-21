@@ -528,6 +528,20 @@
     padding-bottom:26vh; justify-content:center;
     position:relative; z-index:10;
   }
+  .count-btn.unavailable { background:linear-gradient(180deg,#444 0%,#333 100%); color:#666; box-shadow:0 5px 0 #111; cursor:not-allowed; }
+  .count-btn.unavailable:active { transform:none; box-shadow:0 5px 0 #111; }
+
+  .btn-new-game {
+    display:block; width:92%; max-width:420px; margin:32px auto 0;
+    font-family:'Bangers',cursive; font-size:1.1rem; letter-spacing:2px;
+    color:rgba(255,255,255,0.6); background:rgba(10,10,46,0.6);
+    border:2px solid rgba(255,255,255,0.2); border-radius:50px;
+    padding:12px 20px; cursor:pointer; text-align:center;
+    transition:border-color 0.2s, color 0.2s;
+    animation:cardEntry 0.7s 0.5s cubic-bezier(0.34,1.56,0.64,1) backwards;
+  }
+  .btn-new-game:active { color:#FFD700; border-color:#FFD700; }
+
   /* ── NAMES SCREEN ── */
   .names-input-wrap { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
   .name-input-row { display:flex; align-items:center; gap:8px; animation:playerRowIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
@@ -668,6 +682,7 @@
       <button class="btn-next" id="btnStep2Next" onclick="goToStep3()" disabled>Next Step 🏁</button>
     </div>
   </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
 </div>
 
 <!-- STEP 1: PLAYER SETUP -->
@@ -694,6 +709,7 @@
     <button class="btn-reset" onclick="resetAll()">🔄 Reset</button>
     <button class="btn-next" id="btnNext" onclick="goToStep2()" disabled>Next Step 🏁</button>
   </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
 </div>
 
 <script>
@@ -892,11 +908,17 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
   /* ── NAMES SCREEN ── */
   let customNames = [];
 
+  function goToNamesKeep() {
+    playerCount = 0;
+    selections = {};
+    showScreen('screen-step1');
+    initStep1Buttons();
+  }
+
   function initNamesScreen() {
     const wrap = document.getElementById('namesWrap');
     wrap.innerHTML = '';
     customNames = [];
-    // Add 4 default fields
     for (let i = 0; i < 4; i++) addNameField();
     checkNamesNext();
   }
@@ -912,7 +934,6 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
       <input class="name-input" type="text" maxlength="20" placeholder="Player ${idx} name…" oninput="checkNamesNext()" />
     `;
     wrap.appendChild(row);
-    // Focus new field if added via button
     if (idx > 4) setTimeout(() => row.querySelector('input').focus(), 100);
     checkNamesNext();
   }
@@ -935,10 +956,28 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
       const v = inp.value.trim();
       if (v) customNames.push(v);
     });
-    // Inject into NAMES array used by step 1
     NAMES.length = 0;
     customNames.forEach(n => NAMES.push(n));
     showScreen('screen-step1');
+    initStep1Buttons();
+  }
+
+  function initStep1Buttons() {
+    // Grey out count buttons beyond the number of entered names
+    document.querySelectorAll('.count-btn').forEach((btn, i) => {
+      const n = i + 1;
+      if (n > customNames.length) {
+        btn.classList.add('unavailable');
+        btn.onclick = null;
+      } else {
+        btn.classList.remove('unavailable');
+        btn.onclick = () => setCount(n);
+      }
+    });
+    playerCount = 0;
+    selections = {};
+    document.getElementById('playersContainer').innerHTML = '';
+    document.getElementById('btnNext').disabled = true;
   }
 
   const NAMES = ['Lucia','Rafiq','Joshua','Keon','Felix'];
@@ -1672,6 +1711,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
       <button class="btn-next" id="btnStep3Next" onclick="goToStep4()" disabled>Next Step 🏁</button>
     </div>
   </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
 </div>
 
 <!-- STEP 4: CHARACTER SLOT MACHINE -->
@@ -1715,6 +1755,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
       <button class="btn-next" id="btnStep4Next" onclick="goToFinish()" disabled>Next Step 🏁</button>
     </div>
   </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
 </div>
 <!-- STEP 5: VEHICLE SETUP -->
 <div id="screen-step5" class="screen">
@@ -1737,6 +1778,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
       <button class="btn-next" id="btnStep5Next" onclick="goToGoodLuck()" disabled>Finish! 🏁</button>
     </div>
   </div>
+  <button class="btn-new-game" onclick="goToNamesKeep()">🏠 New Game</button>
 </div>
 
 <!-- MUTE BUTTON -->
@@ -1751,7 +1793,7 @@ document.addEventListener('touchstart', ensureMusicStarted, { once: true });
     <div class="gl-subtitle">Good Luck Racers! 🏁</div>
     <div class="gl-players-wrap" id="glPlayersWrap"></div>
     <span class="gl-flag">🏁</span>
-    <button class="gl-start-btn" onclick="showScreen('screen-names'); initNamesScreen();">🔄 Play Again!</button>
+    <button class="gl-start-btn" onclick="goToNamesKeep()">🔄 Play Again!</button>
   </div>
 </div>
 
